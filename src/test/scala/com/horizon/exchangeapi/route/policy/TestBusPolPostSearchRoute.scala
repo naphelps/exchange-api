@@ -39,14 +39,14 @@ class TestBusPolPostSearchRoute extends AnyFunSuite with BeforeAndAfterAll with 
              publicKey     = "",
              token         = "$2a$10$2ElhDrDUXcFzvU63Gl3dWeGYsWYTqgaBxkthhhdwwWc2YTP1yB4Ky") // "TestPolicySearchPost/a1:a1tok"
   private val TESTORGANIZATION: OrgRow =
-    OrgRow(heartbeatIntervals = "",
-           description        = "",
+    OrgRow(description        = "",
+           heartbeatIntervals = "",
            label              = "",
            lastUpdated        = ApiTime.nowUTC,
+           limits             = "",
            orgId              = "TestPolicySearchPost",
            orgType            = "",
-           tags               = None,
-           limits             = "")
+           tags               = None)
   private val TESTPOLICIES: Seq[BusinessPolicyRow] =
     Seq(BusinessPolicyRow(businessPolicy = "TestPolicySearchPost/pol1",
                           constraints    = """["a == b"]""",
@@ -57,9 +57,9 @@ class TestBusPolPostSearchRoute extends AnyFunSuite with BeforeAndAfterAll with 
                           orgid          = "TestPolicySearchPost",
                           owner          = "TestPolicySearchPost/u1",
                           properties     = """[{"name":"purpose","value":"location"}]""",
+                          secretBinding  = "",
                           service        = """{"name":"svc1","org":"TestPolicySearchPost","arch":"arm","serviceVersions":[{"version":"1.0.0"}],"nodeHealth":{"missing_heartbeat_interval":1800,"check_agreement_status":1800}}""",
-                          userInput      = "",
-                          secretBinding  = ""))
+                          userInput      = ""))
   private val TESTSERVICES: Seq[ServiceRow] =
     Seq(ServiceRow(arch                       = "arm",
                    clusterDeployment          = "",
@@ -83,9 +83,9 @@ class TestBusPolPostSearchRoute extends AnyFunSuite with BeforeAndAfterAll with 
                    version                    = "1.0.0"))
   private val TESTUSER: UserRow =
     UserRow(admin       = false,
-            hubAdmin    = false,
             email       = "",
             hashedPw    = "",
+            hubAdmin    = false,
             lastUpdated = ApiTime.nowUTC,
             orgid       = "TestPolicySearchPost",
             updatedBy   = "",
