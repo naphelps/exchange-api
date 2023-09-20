@@ -91,9 +91,11 @@ object SwaggerDocService extends SwaggerHttpService {
 trait SwaggerUiService extends Directives {
   val swaggerUiRoutes: Route =
     path("swagger") {
-      getFromResource("swagger/index.html")
-    } ~
-    getFromResourceDirectory("swagger")
+      getFromResourceDirectory("lib/swagger-ui")
+      //getFromResource("webjars/swagger-ui/index.html")
+    } //~
+    //getFromResourceDirectory("swagger")
+    //getFromResourceDirectory("webjars/swagger-ui/")
 }
 
 /* this didn't work because swagger annotations need to be constants

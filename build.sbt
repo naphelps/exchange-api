@@ -5,7 +5,7 @@ import scala.io.Source
 import scala.sys.process._
 import com.typesafe.sbt.packager.docker._
 
-enablePlugins(JavaAppPackaging, DockerPlugin)
+enablePlugins(JavaAppPackaging, DockerPlugin, SbtWeb)
 
 // For latest versions, see https://mvnrepository.com/
 lazy val akkaHttpVersion = settingKey[String]("Version of Akka-Http")
@@ -42,7 +42,6 @@ lazy val root = (project in file("."))
     // ThisBuild / scapegoatVersion := "1.4.4",
     // coverageEnabled               := false,
     
-    
     // Sbt uses Ivy for dependency resolution, so it supports its version syntax: http://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html#revision
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion.value,
@@ -56,6 +55,7 @@ lazy val root = (project in file("."))
       "org.json4s" %% "json4s-native" % "4.0.6",
       "org.json4s" %% "json4s-jackson" % "4.0.6",
       
+      "org.webjars" % "swagger-ui" % "[5.6.1,)",
       "jakarta.ws.rs" % "jakarta.ws.rs-api" % "[3.1.0,)",
       // "org.glassfish.jersey.core" % "jersey-common" % "1.2.1",             // Required at runtime by javax.ws.rs-api
       "com.github.swagger-akka-http" %% "swagger-akka-http" % "[2.6.0]",      // Deprecated in v2.8.0 due to Akka license change to BSL v1.1
@@ -99,63 +99,76 @@ lazy val root = (project in file("."))
     
     //javaOptions ++= Seq("-Djava.security.auth.login.config=src/main/resources/jaas.config", "-Djava.security.policy=src/main/resources/auth.policy")
     
+    //Assets / WebKeys.packagePrefix := "something/",
+    //Assets / WebKeys.importDirectly := true,
+    WebKeys.webTarget := (Compile / resourceDirectory).value,
+    //Assets / WebKeys.webModuleDirectory := "something",
+    // Assets / WebKeys.webTarget := File("something"),
+    //(Runtime / managedClasspath) += (Assets / WebKeys.webTarget).value,
+    
     // These settings are for the Docker subplugin within sbt-native-packager. See: https://sbt-native-packager.readthedocs.io/en/stable/formats/docker.html
-    Docker / version        := sys.env.getOrElse("IMAGE_VERSION", versionFunc()), // overwrite this setting to build a test version of the exchange with a custom tag in docker, defaults to exchange version
-    Docker / packageName    := "openhorizon/" ++ name.value,
-    Docker / daemonUser     := "exchangeuser",
-    Docker / daemonGroup    := "exchangegroup",
-    Docker / daemonGroupGid := some("1001"),
-    dockerExposedPorts     ++= Seq(8080),
-    dockerBaseImage         := "registry.access.redhat.com/ubi9-minimal:latest",
-    dockerEnvVars := Map("JAVA_OPTS" -> ""),   // this is here so JAVA_OPTS can be overridden on the docker run cmd with a value like: -Xmx1G
+    Docker / version            := sys.env.getOrElse("IMAGE_VERSION", versionFunc()), // overwrite this setting to build a test version of the exchange with a custom tag in docker, defaults to exchange version
+    Docker / packageName        := "openhorizon/" ++ name.value,
+    Docker / daemonUser         := "exchangeuser",
+    Docker / daemonGroup        := "exchangegroup",
+    Docker / daemonGroupGid     := some("1001"),
+    Docker / dockerExposedPorts ++= Seq(8080),
+    Docker / dockerBaseImage    := "registry.access.redhat.com/ubi9-minimal:latest",
+    Docker / dockerEnvVars      := Map("JAVA_OPTS" -> ""),   // this is here so JAVA_OPTS can be overridden on the docker run cmd with a value like: -Xmx1G
     // dockerEntrypoint ++= Seq("-Djava.security.auth.login.config=src/main/resources/jaas.config")  // <- had trouble getting this to work
-    Docker / mappings ++= Seq((baseDirectory.value / "LICENSE.txt") -> "/1/licenses/LICENSE.txt",
-                              (baseDirectory.value / "config" / "exchange-api.tmpl") -> "/2/etc/horizon/exchange/exchange-api.tmpl"
-                             ),
-    dockerCommands           := Seq(Cmd("FROM", dockerBaseImage.value ++ " as stage0"),
-                                    Cmd("LABEL", "snp-multi-stage='intermediate'"),
-                                    Cmd("LABEL", "snp-multi-stage-id='6466ecf3-c305-40bb-909a-47e60bded33d'"),
-                                    Cmd("WORKDIR", "/etc/horizon/exchange"),
-                                    Cmd("COPY", "2/etc/horizon/exchange /2/etc/horizon/exchange"),
-                                    Cmd("RUN", "> /2/etc/horizon/exchange/config.json"),
-                                    Cmd("WORKDIR", "/licenses"),
-                                    Cmd("COPY", "1/licenses /1/licenses"),
-                                    Cmd("WORKDIR", "/opt/docker"),
-                                    Cmd("COPY", "2/opt /2/opt"),
-                                    Cmd("COPY", "4/opt /4/opt"),
-                                    Cmd("USER", "root"),
-                                    Cmd("RUN", "chmod -R u=r,g=r /2/etc/horizon /licenses && chmod -R u+w,g+w /2/etc/horizon/exchange && chmod -R u=rX,g=rX /4/opt/docker /2/opt/docker && chmod u+x,g+x /4/opt/docker/bin/" ++ name.value),
-                                    Cmd("FROM", dockerBaseImage.value),
-                                    Cmd("LABEL", "description=" ++ description.value),
-                                    // Cmd("LABEL", "io.k8s.description=''"),
-                                    // Cmd("LABEL", "io.k8s.display-name=''"),
-                                    // Cmd("LABEL", "io.openshift.tags=''"),
-                                    Cmd("LABEL", "name=" ++ name.value),
-                                    Cmd("LABEL", "release=" ++ release.value),
-                                    Cmd("LABEL", "summary=" ++ summary.value),
-                                    Cmd("LABEL", "vendor=" ++ vendor.value),
-                                    Cmd("LABEL", "version=" ++ version.value),
-                                    Cmd("RUN", "mkdir -p /run/user/$UID && microdnf update -y --nodocs 1>/dev/null 2>&1 && microdnf install -y --nodocs shadow-utils gettext java-17-openjdk openssl 1>/dev/null 2>&1 && microdnf clean all"),
-                                    Cmd("USER", "root"),
-                                    Cmd("RUN", "id -u " ++ (Docker / daemonUser).value ++ " 1>/dev/null 2>&1 || ((getent group 1001 1>/dev/null 2>&1 || (type groupadd 1>/dev/null 2>&1 && groupadd -g 1001 " ++ (Docker / daemonGroup).value ++ " || addgroup -g 1001 -S " ++ (Docker / daemonGroup).value ++ ")) && (type useradd 1>/dev/null 2>&1 && useradd --system --create-home --uid 1001 --gid 1001 " ++ (Docker / daemonUser).value ++ " || adduser -S -u 1001 -G " ++ (Docker / daemonGroup).value ++ " " ++ (Docker / daemonUser).value ++ "))"),
-                                    Cmd("WORKDIR", "/etc/horizon/exchange"),
-                                    Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/2/etc/horizon/exchange /etc/horizon/exchange"),
-                                    Cmd("WORKDIR", "/licenses"),
-                                    Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/1/licenses /licenses"),
-                                    Cmd("WORKDIR", "/opt/docker"),
-                                    Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/4/opt/docker /opt/docker"),
-                                    Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/2/opt/docker /opt/docker"),
-                                    Cmd("ENV", "JAVA_OPTS=''"),
-                                    Cmd("ENV", "ENVSUBST_CONFIG=''"),
-                                    Cmd("EXPOSE", "8080"),
-                                    Cmd("EXPOSE", "8083"),
-                                    Cmd("USER", "1001:1001"),
-                                    /*
-                                     * If bind-mounting your own config.json rename the configuration file in the container's filesystem to exchange-api.tmpl. This will overwrite the
-                                     * exchange-api.tmpl provided in this docker image and prevent cases where a bind-mount config.json is set with read-only permissions.
-                                     * Any mounted config.json can choose to use variables to take advantage of the substitution below.
-                                     */
-                                    Cmd("ENTRYPOINT", "/usr/bin/envsubst $ENVSUBST_CONFIG < /etc/horizon/exchange/exchange-api.tmpl > /etc/horizon/exchange/config.json && /opt/docker/bin/" ++ name.value),
-                                    Cmd("CMD", "[]")
-                                  )
-  )
+    Docker / mappings           ++= Seq((baseDirectory.value / "LICENSE.txt") -> "/1/licenses/LICENSE.txt",
+                                        (baseDirectory.value / "config" / "exchange-api.tmpl") -> "/2/etc/horizon/exchange/exchange-api.tmpl")//,
+    /*Docker / dockerCommands     :=
+      Seq(Cmd("FROM", dockerBaseImage.value ++ " as stage0"),
+          Cmd("LABEL", "snp-multi-stage='intermediate'"),
+          Cmd("LABEL", "snp-multi-stage-id='6466ecf3-c305-40bb-909a-47e60bded33d'"),
+          Cmd("WORKDIR", "/etc/horizon/exchange"),
+          Cmd("COPY", "2/etc/horizon/exchange /2/etc/horizon/exchange"),
+          Cmd("RUN", "> /2/etc/horizon/exchange/config.json"),
+          Cmd("WORKDIR", "/licenses"),
+          Cmd("COPY", "1/licenses /1/licenses"),
+          Cmd("WORKDIR", "/opt/docker"),
+          Cmd("COPY", "2/opt /2/opt"),
+          Cmd("COPY", "4/opt /4/opt"),
+          Cmd("USER", "root"),
+          Cmd("RUN", "chmod -R u=r,g=r /2/etc/horizon /licenses && chmod -R u+w,g+w /2/etc/horizon/exchange && " ++
+                     "chmod -R u=rX,g=rX /4/opt/docker /2/opt/docker && chmod u+x,g+x /4/opt/docker/bin/" ++ name.value),
+          Cmd("FROM", dockerBaseImage.value),
+          Cmd("LABEL", "description=" ++ description.value),
+          // Cmd("LABEL", "io.k8s.description=''"),
+          // Cmd("LABEL", "io.k8s.display-name=''"),
+          // Cmd("LABEL", "io.openshift.tags=''"),
+          Cmd("LABEL", "name=" ++ name.value),
+          Cmd("LABEL", "release=" ++ release.value),
+          Cmd("LABEL", "summary=" ++ summary.value),
+          Cmd("LABEL", "vendor=" ++ vendor.value),
+          Cmd("LABEL", "version=" ++ version.value),
+          Cmd("RUN", "mkdir -p /run/user/$UID && " ++
+                     "microdnf update -y --nodocs 1>/dev/null 2>&1 && " ++
+                     "microdnf install -y --nodocs shadow-utils gettext java-17-openjdk openssl 1>/dev/null 2>&1 && " ++
+                     "microdnf clean all"),
+          Cmd("USER", "root"),
+          Cmd("RUN", "id -u " ++ (Docker / daemonUser).value ++ " 1>/dev/null 2>&1 || " ++
+                     "((getent group 1001 1>/dev/null 2>&1 || (type groupadd 1>/dev/null 2>&1 && groupadd -g 1001 " ++ (Docker / daemonGroup).value ++ " || addgroup -g 1001 -S " ++ (Docker / daemonGroup).value ++ ")) && " ++
+                     "(type useradd 1>/dev/null 2>&1 && useradd --system --create-home --uid 1001 --gid 1001 " ++ (Docker / daemonUser).value ++ " || adduser -S -u 1001 -G " ++ (Docker / daemonGroup).value ++ " " ++ (Docker / daemonUser).value ++ "))"),
+          Cmd("WORKDIR", "/etc/horizon/exchange"),
+          Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/2/etc/horizon/exchange /etc/horizon/exchange"),
+          Cmd("WORKDIR", "/licenses"),
+          Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/1/licenses /licenses"),
+          Cmd("WORKDIR", "/opt/docker"),
+          Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/4/opt/docker /opt/docker"),
+          Cmd("COPY --from=stage0 --chown=" ++ (Docker / daemonUser).value ++ ":" ++ (Docker / daemonGroup).value, "/2/opt/docker /opt/docker"),
+          Cmd("ENV", "JAVA_OPTS=''"),
+          Cmd("ENV", "ENVSUBST_CONFIG=''"),
+          Cmd("EXPOSE", "8080"),
+          Cmd("EXPOSE", "8083"),
+          Cmd("USER", "1001:1001"),
+          /*
+           * If bind-mounting your own config.json rename the configuration file in the container's filesystem to exchange-api.tmpl. This will overwrite the
+           * exchange-api.tmpl provided in this docker image and prevent cases where a bind-mount config.json is set with read-only permissions.
+           * Any mounted config.json can choose to use variables to take advantage of the substitution below.
+           */
+          Cmd("ENTRYPOINT", "/usr/bin/envsubst $ENVSUBST_CONFIG < /etc/horizon/exchange/exchange-api.tmpl > /etc/horizon/exchange/config.json && /opt/docker/bin/" ++ name.value),
+          Cmd("CMD", "[]")
+          )*/
+    )
