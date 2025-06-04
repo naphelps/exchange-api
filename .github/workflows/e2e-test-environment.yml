@@ -32,7 +32,7 @@ jobs:
       EXCHANGE_IMAGE_TAG: 2.127.0
       EXCHANGE_PEKKO_LOGLEVEL: debug
       EXCHANGE_ROOT_PW: ci-password
-      GOPATH: /home/runner/work/anax/anax/go
+      GOPATH: /home/runner/work/exchange-api/exchange-api/go
       DOCKER_CONFIG: /home/runner/.docker-config
 
     # Steps represent a sequence of tasks that will be executed as part of the job
