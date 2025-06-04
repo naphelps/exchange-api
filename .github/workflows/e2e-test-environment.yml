@@ -44,7 +44,7 @@ jobs:
       - name: Checkout Anax
         uses: actions/checkout@v4
         with:
-          repository: github.com/open-horizon/anax
+          repository: open-horizon/anax
           path: go/src/github.com/open-horizon/anax
 
       - uses: coursier/cache-action@v6
