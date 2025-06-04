@@ -1,0 +1,79 @@
+# Name of the workflow
+name: E2E-test
+
+# Workflow triggers -- When a pull request is made for the listed branches
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+
+# Jobs executed when workflow is triggered
+jobs:
+  test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-24.04
+
+    # Strategy allows specifying matrix axis(es) that will run for the test
+    strategy:
+      matrix:
+        tests: ["NOLOOP=1", "NOLOOP=1 TEST_PATTERNS=sall"]
+
+    # Variables that are available to all steps in the job
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      DOCKER_NETWORK: exchange-api-network
+      DOCKER_REGISTRY: openhorizon
+      EXCHANGE_DB_NAME: exchange
+      # ((Core Count * 2) + Spindle Count); Default is 20
+      EXCHANGE_DB_NUMTHREADS: 9
+      EXCHANGE_DB_PORT: 5432
+      EXCHANGE_DB_USER: admin
+      EXCHANGE_IMAGE_TAG: 2.127.0
+      EXCHANGE_PEKKO_LOGLEVEL: debug
+      EXCHANGE_ROOT_PW: ci-password
+      GOPATH: /home/runner/work/anax/anax/go
+      DOCKER_CONFIG: /home/runner/.docker-config
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          path: go/src/github.com/${{github.repository}}
+
+      # Setup Scala
+      # Comes from open source action: https://github.com/coursier/setup-action
+      - name: Setup Scala
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+          jvm: temurin:1.21
+
+      - name: Create Docker Env
+        run: |
+          pwd
+          java -version
+          sbt docker:publishLocalc
+
+      # Prepares the environment by setting up golang
+      - name: Set up golang 1.23
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          check-latest: true
+
+      - name: Verify Docker version
+        run: docker --version
+
+      # Build anax binaries
+      - name: Build anax binaries
+        run: cd ${GOPATH}/src/github.com/${GITHUB_REPOSITORY} && make
+
+      # Build the e2edev docker images
+      - name: Build the e2edev docker images
+        run: cd ${GOPATH}/src/github.com/${GITHUB_REPOSITORY} && make -C test build-remote
+
+      # E2E development test
+      - name: E2E dev-test
+        run: cd ${GOPATH}/src/github.com/${GITHUB_REPOSITORY} && make -C test clean && make -C test test TEST_VARS=${{matrix.tests}}
