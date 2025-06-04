@@ -38,9 +38,16 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout Exchange
+        uses: actions/checkout@v4
+
+      - name: Checkout Anax
+        uses: actions/checkout@v4
         with:
-          path: go/src/github.com/${{github.repository}}
+          repository: github.com/open-horizon/anax
+          path: go/src/github.com/anax
+
+      - uses: coursier/cache-action@v6
 
       # Setup Scala
       # Comes from open source action: https://github.com/coursier/setup-action
@@ -54,7 +61,7 @@ jobs:
         run: |
           pwd
           java -version
-          sbt docker:publishLocalc
+          sbt docker:publishLocal
 
       # Prepares the environment by setting up golang
       - name: Set up golang 1.23
