@@ -12,7 +12,7 @@ on:
 jobs:
   test:
     # The type of runner that the job will run on
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     # Strategy allows specifying matrix axis(es) that will run for the test
     strategy:
@@ -44,8 +44,9 @@ jobs:
       - name: Checkout Anax
         uses: actions/checkout@v4
         with:
-          repository: open-horizon/anax
           path: go/src/github.com/open-horizon/anax
+          ref: v2.31
+          repository: open-horizon/anax
 
       - uses: coursier/cache-action@v6
 
