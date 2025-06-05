@@ -31,7 +31,7 @@ jobs:
       EXCHANGE_DB_PORT: 5432
       EXCHANGE_DB_USER: admin
       EXCHANGE_IMAGE_TAG: 2.127.0
-      EXCHANGE_PEKKO_LOGLEVEL: debug
+      EXCHANGE_PEKKO_LOGLEVEL: DEBUG
       EXCHANGE_ROOT_PW: ci-password
       GOPATH: /home/runner/work/exchange-api/exchange-api/go
       DOCKER_CONFIG: /home/runner/.docker-config
@@ -63,13 +63,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: go/src/github.com/open-horizon/anax
-          ref: master
-          repository: open-horizon/anax
+          ref: issue-4345
+          repository: naphelps/anax
 
       - name: Verify Base Path
         run: pwd
 
-      - name: Verify Java
+      - name: Verify Java Version
         run: java -version
 
       - name: Verify Docker version
@@ -78,17 +78,14 @@ jobs:
       - name: Build Exchange Container Image
         run: sbt Docker/publishLocal
 
-      # Build anax binaries
       - name: Build Anax Binaries
         run: cd ${GOPATH}/src/github.com/open-horizon/anax && make
 
-      # Build the e2edev docker images
-      - name: Build The ESEDev Container Image
+      - name: Build the E2E-Dev Container Image
         run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test build-remote
 
       - name: Verify Built Container Images
         run: docker images
 
-      # E2E development test
-      - name: E2E Dev-Test
-        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test && make -C test test TEST_VARS=${{matrix.tests}}
+      - name: E2E Development Test
+        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test test-no-clean TEST_VARS=${{matrix.tests}}
