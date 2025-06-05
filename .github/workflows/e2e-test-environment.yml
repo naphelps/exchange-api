@@ -103,4 +103,4 @@ jobs:
       - name: E2E dev-test
         run: |
           docker images
-          cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test clean && make -C test test TEST_VARS=${{matrix.tests}}
+          cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test && make -C test test TEST_VARS=${{matrix.tests}}
