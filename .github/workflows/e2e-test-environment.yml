@@ -58,8 +58,6 @@ jobs:
 
       - name: Checkout Exchange
         uses: actions/checkout@v4
-        with:
-          path: go/src/github.com/open-horizon/exchange
 
       - name: Checkout Anax
         uses: actions/checkout@v4
@@ -77,30 +75,20 @@ jobs:
       - name: Verify Docker version
         run: docker --version
 
-      - name: Create Docker Env
-        run: |
-          ls .
-          echo -----------
-          ls /home/runner/work/exchange-api/exchange-api/go/src/github.com/open-horizon/exchange
-          echo -----------
-          ls /home/runner/work/exchange-api/exchange-api/go/src/github.com/open-horizon/anax
-          echo -----------
-          cd ${GOPATH}/src/github.com/open-horizon/exchange && sbt Docker/publishLocal
-          echo -----------
-          docker images
+      - name: Build Exchange Container Image
+        run: Docker/publishLocal
 
       # Build anax binaries
-      - name: Build anax binaries
+      - name: Build Anax Binaries
         run: cd ${GOPATH}/src/github.com/open-horizon/anax && make
 
       # Build the e2edev docker images
-      - name: Build the e2edev docker images
-        run: |
-          docker images
-          cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test build-remote
+      - name: Build The ESEDev Container Image
+        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test build-remote
+
+      - name: Verify Built Container Images
+        run: docker images
 
       # E2E development test
-      - name: E2E dev-test
-        run: |
-          docker images
-          cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test && make -C test test TEST_VARS=${{matrix.tests}}
+      - name: E2E Dev-Test
+        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test && make -C test test TEST_VARS=${{matrix.tests}}
