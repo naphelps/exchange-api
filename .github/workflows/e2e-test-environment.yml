@@ -66,7 +66,9 @@ jobs:
           pwd
           java -version
           ls .
-          ls ${GOPATH}/src/github.com/open-horizon/anax
+          echo -----------
+          ls /home/runner/work/exchange-api/exchange-api/go/src/github.com/open-horizon/anax
+          echo -----------
           cd ${GOPATH}/src/github.com/open-horizon/anax && sbt Docker/publishLocal
 
       # Prepares the environment by setting up golang
