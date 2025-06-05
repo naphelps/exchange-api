@@ -31,6 +31,7 @@ jobs:
       EXCHANGE_DB_PORT: 5432
       EXCHANGE_DB_USER: admin
       EXCHANGE_IMAGE_TAG: 2.127.0
+      EXCHANGE_LOG_LEVEL: DEBUG
       EXCHANGE_PEKKO_LOGLEVEL: DEBUG
       EXCHANGE_ROOT_PW: ci-password
       GOPATH: /home/runner/work/exchange-api/exchange-api/go
