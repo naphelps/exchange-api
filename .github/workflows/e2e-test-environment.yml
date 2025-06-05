@@ -41,6 +41,21 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: coursier/cache-action@v6
 
+      # Prepares the environment by setting up golang
+      - name: Set up golang 1.23
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          check-latest: true
+
+      # Setup Scala
+      # Comes from open source action: https://github.com/coursier/setup-action
+      - name: Setup Scala
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+          jvm: temurin:1.21
+
       - name: Checkout Exchange
         uses: actions/checkout@v4
         with:
@@ -53,18 +68,17 @@ jobs:
           ref: master
           repository: open-horizon/anax
 
-      # Setup Scala
-      # Comes from open source action: https://github.com/coursier/setup-action
-      - name: Setup Scala
-        uses: coursier/setup-action@v1
-        with:
-          apps: sbt
-          jvm: temurin:1.21
+      - name: Verify Base Path
+        run: pwd
+
+      - name: Verify Java
+        run: java -version
+
+      - name: Verify Docker version
+        run: docker --version
 
       - name: Create Docker Env
         run: |
-          pwd
-          java -version
           ls .
           echo -----------
           ls /home/runner/work/exchange-api/exchange-api/go/src/github.com/open-horizon/exchange
@@ -72,16 +86,8 @@ jobs:
           ls /home/runner/work/exchange-api/exchange-api/go/src/github.com/open-horizon/anax
           echo -----------
           cd ${GOPATH}/src/github.com/open-horizon/exchange && sbt Docker/publishLocal
-
-      # Prepares the environment by setting up golang
-      - name: Set up golang 1.23
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
-          check-latest: true
-
-      - name: Verify Docker version
-        run: docker --version
+          echo -----------
+          docker images
 
       # Build anax binaries
       - name: Build anax binaries
@@ -89,8 +95,12 @@ jobs:
 
       # Build the e2edev docker images
       - name: Build the e2edev docker images
-        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test build-remote
+        run: |
+          docker images
+          cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test build-remote
 
       # E2E development test
       - name: E2E dev-test
-        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test clean && make -C test test TEST_VARS=${{matrix.tests}}
+        run: |
+          docker images
+          cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test clean && make -C test test TEST_VARS=${{matrix.tests}}
