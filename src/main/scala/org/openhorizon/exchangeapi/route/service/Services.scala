@@ -158,7 +158,7 @@ trait Services extends JacksonSupport with AuthenticationSupport {
                   @Parameter(hidden = true) organization: String): Route =
     parameter("owner".?, "public".as[Boolean].optional, "url".?, "version".?, "arch".?, "nodetype".?, "requiredurl".?) {
       (owner, public, url, version, arch, nodetype, requiredurl) =>
-        logger.debug(s"GET /orgs/{organization}/services?arch=${arch.getOrElse("None")},nodetype=${nodetype.getOrElse("None")},owner=${owner.getOrElse("None")},public=${"None"},requiredurl=${requiredurl.getOrElse("None")},url=${url.getOrElse("None")},version=${version.getOrElse("None")} - By ${identity.resource}:${identity.role}")
+        logger.debug(s"GET /orgs/{organization}/services?arch=${arch.getOrElse("None")}, nodetype=${nodetype.getOrElse("None")}, owner=${owner.getOrElse("None")}, public=${"None"}, requiredurl=${requiredurl.getOrElse("None")}, url=${url.getOrElse("None")}, version=${version.getOrElse("None")} - By ${identity.resource}:${identity.role}")
         
         validateWithMsg(if (version.isDefined && !Version(version.get).isValid)
                           Option(ExchMsg.translate("version.not.valid.format", version.get))

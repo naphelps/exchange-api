@@ -245,7 +245,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
     get {
       parameter ("attribute".?) {
         attribute =>
-          logger.debug(s"GET /orgs/$organization/nodes/$node - By ${identity.resource}:${identity.role}")
+          logger.debug(s"GET /orgs/$organization/nodes/$node?attribute=$attribute - By ${identity.resource}:${identity.role}")
           
               val nodes =
                 NodesTQ.filter(nodes => nodes.id === resource &&
@@ -484,16 +484,18 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                               Option(ExchMsg.translate("token.cannot.be.empty.string"))
                             else
                               None) {
-                logger.debug(s"Doing PATCH /orgs/$organization/nodes/$node")
+              // Have a single attribute to update, retrieve its name.
+              val validAttribute: String =
+                attributeExistence.filter(attribute => attribute._2).head._1
+                
+              logger.debug(s"PATCH /orgs/$organization/nodes/$node - attribute=$validAttribute")
                 // Synchronize the timestamps of the records we are changing. This helps debugging/troubleshooting from the records and logs.
                 val changeTimestamp: Timestamp = ApiTime.nowUTCTimestamp
                 implicit val formats: DefaultFormats.type = DefaultFormats
                 // Multi-threaded rest requests. Need to break records into blocks based on request.
                 val session: String = Password.hash(password = s"patch$organization$node${identity.resource}${changeTimestamp.getTime.toString}")
 
-                // Have a single attribute to update, retrieve its name.
-                val validAttribute: String =
-                  attributeExistence.filter(attribute => attribute._2).head._1
+                
 
                 val getPatternBase: Query[Patterns, PatternRow, Seq] =
                   PatternsTQ.filter(_.pattern === reqBody.pattern)
@@ -538,7 +540,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                                    service.url,
                                    service.version))
               val hashedPW =
-                if (validAttribute == "token")
+                if (validAttribute == "token" && reqBody.token.get.nonEmpty)
                   Password.hash(reqBody.token.get)
                 else
                   ""
@@ -717,7 +719,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                                         orgId = organization,
                                         public = "false",
                                         resource = ResChangeResource.NODE.toString)
-                  } yield ()
+                  } yield nodesUpdated
                 
               complete {
                 db.run(patchNode.transactionally.asTry)
@@ -726,7 +728,8 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                       
                       Future {
                         if (validAttribute == "token") {
-                          if (identity.isNode)
+                          if (identity.isNode &&
+                              resource == identity.resource)
                             cacheResourceIdentity.put(resource)(value = (identity, hashedPW),
                                                                 ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds))
                           else

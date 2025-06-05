@@ -2,9 +2,9 @@
 
 <configuration scan="true" scanPeriod="15 minutes">
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+    <!-- <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>TRACE</level>
-    </filter>
+    </filter> -->
     <encoder>
      <pattern>[%date{ISO8601}] %-44([%logger]) [%marker] %-42([%thread]) %highlight(%-7([%level])) -%kvp- %msg%n</pattern>
     </encoder>
