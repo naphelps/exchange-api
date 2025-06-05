@@ -65,7 +65,9 @@ jobs:
         run: |
           pwd
           java -version
-          cd go/src/github.com/open-horizon/anax && sbt Docker/publishLocal
+          ls .
+          ls ${GOPATH}/go/src/github.com/open-horizon/anax
+          cd ${GOPATH}/go/src/github.com/open-horizon/anax && sbt Docker/publishLocal
 
       # Prepares the environment by setting up golang
       - name: Set up golang 1.23
