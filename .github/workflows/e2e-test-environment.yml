@@ -95,6 +95,8 @@ jobs:
       - name: Test Failure Catch
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: |
-          docker logs amd64_exchange-api
-          echo -------
+          docker ps -a
+          echo ---------------
+          docker logs exchange-api
+          echo ---------------
           microk8s.kubctl get pods
