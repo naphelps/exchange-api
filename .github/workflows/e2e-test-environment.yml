@@ -76,7 +76,7 @@ jobs:
         run: docker --version
 
       - name: Build Exchange Container Image
-        run: Docker/publishLocal
+        run: sbt Docker/publishLocal
 
       # Build anax binaries
       - name: Build Anax Binaries
