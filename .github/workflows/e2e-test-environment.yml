@@ -41,6 +41,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Exchange
         uses: actions/checkout@v4
+        with:
+          path: go/src/github.com/open-horizon/anax
 
       - name: Checkout Anax
         uses: actions/checkout@v4
