@@ -379,89 +379,117 @@ object ExchangeApiApp extends App
           }
           
           if (organization.isEmpty &&
-              username.isEmpty)
-            return Future.successful(None)
-          
-          
-          def identityCacheGet (resource: String): Future[(Identity2, String)] = {
-            cacheResourceIdentity.cachingF(resource)(ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds)) {
-              // On cache miss execute this block to try and find what the value should be.
-              // If found add to the cache for next time.
-              getResourceIdentityAndPassword(organization, username).map {
-                // Yield this Resource's identity metadata and construct a future identity object. Resource's stored credential tags along.
-                // This object will be returned and used if authenticated.
-                identityMetadata: ((Boolean, Option[UUID], Boolean, Option[UUID], Int), String) => (new Identity2(organization, identityMetadata._1, username), identityMetadata._2)
+              username.isEmpty) {
+            Future.successful(None)
+            
+          } else if (username == "apikey") {
+            val verifiedIdentityFut = for {
+              apiKeys <- db.run(ApiKeysTQ.getByOrg(organization).result)
+              matchedKeyOpt = apiKeys.find(apiKey =>
+                p.provideVerify("unused", (_, providedToken) =>
+                  Password.check(providedToken, apiKey.hashedKey)
+                )
+              )
+              actualUsernameOpt <- matchedKeyOpt match {
+                case Some(matchedKey) =>
+                  db.run(
+                    UsersTQ.filter(u => u.organization === organization && u.user === matchedKey.user)
+                          .map(_.username)
+                          .result.headOption
+                  )
+                case None =>
+                  Future.successful(None)
+              }
+              result <- actualUsernameOpt match {
+                case Some(actualUsername) =>
+                  getResourceIdentityAndPassword(organization, actualUsername).map {
+                    case (meta, _) => Some(new Identity2(organization, meta, actualUsername))
+                  }
+                case None =>
+                  Future.successful(None)
+              }
+            } yield result
+            verifiedIdentityFut
+          } else {
+            def identityCacheGet (resource: String): Future[(Identity2, String)] = {
+              cacheResourceIdentity.cachingF(resource)(ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds)) {
+                // On cache miss execute this block to try and find what the value should be.
+                // If found add to the cache for next time.
+                getResourceIdentityAndPassword(organization, username).map {
+                  // Yield this Resource's identity metadata and construct a future identity object. Resource's stored credential tags along.
+                  // This object will be returned and used if authenticated.
+                  identityMetadata: ((Boolean, Option[UUID], Boolean, Option[UUID], Int), String) => (new Identity2(organization, identityMetadata._1, username), identityMetadata._2)
+                }
               }
             }
-          }
-          
-          def AuthenticationCheck (resourceIdentityAndCred: Option[(Identity2, String)]): Future[Option[Identity2]] = Future {
-            resourceIdentityAndCred match {
-             case Some(resourceIdentityAndCred) =>
-               // Guard, should never hit this condition. Reject the authentication attempt if true, as we cannot determine this resource's identity.
-               if (resourceIdentityAndCred._1.role == AuthRoles.Anonymous) {
-                 Future { logger.debug(s"Authentication: This resource ${resourceIdentityAndCred._1.resource} yields user archetype ${resourceIdentityAndCred._1.role}.") }
-                 None
-               }
-               // Guard, should never hit this condition. Reject the authentication attempt if true, as we cannot determine this resource's identity.
-               else if (resourceIdentityAndCred._1.isUser &&
-                       resourceIdentityAndCred._1.identifier.isEmpty) {
-                 Future { logger.debug(s"Authentication: The ${resourceIdentityAndCred._1.role} resource ${resourceIdentityAndCred._1.resource} is missing a UUID.") }
-                 None
-               }
-               else if (p.provideVerify(secret = resourceIdentityAndCred._2,
-                                        verifier =
-                                          // (Hashed credential in database, Plain-text password from Authorization: Basic header)
-                                         (storedSecret, requestPassword) => {
-                                           if (!storedSecret.startsWith("$argon2id") && BCrypt.checkpw(requestPassword, storedSecret)) {
-                                             Future { logger.debug(s"Resource ${resourceIdentityAndCred._1.resource}(${resourceIdentityAndCred._1.identifier.getOrElse("None")}):${resourceIdentityAndCred._1.role} has a credential that is using a legacy BCrypt algorithm. Rehashing this credential to Argon2id.") }
-                                             val rehashedCredential = Password.hash(requestPassword)
-                                             
-                                             Future { cacheResourceIdentity.put(p.identifier)(value = (resourceIdentityAndCred._1, rehashedCredential), ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds)) }
-                                             
-                                             Future {
-                                               resourceIdentityAndCred._1.role match {
-                                                 case AuthRoles.Agbot =>
-                                                   Future { db.run(AgbotsTQ.filter(_.id === resourceIdentityAndCred._1.resource).map(_.token).update(rehashedCredential))}
-                                                 case AuthRoles.Node =>
-                                                   Future { db.run(NodesTQ.filter(_.id === resourceIdentityAndCred._1.resource).map(_.token).update(rehashedCredential))}
-                                                 case _ =>
-                                                   Future { db.run(UsersTQ.filter(_.user === resourceIdentityAndCred._1.identifier.get).map(_.password).update(Option(rehashedCredential)))}
-                                               }
-                                             }
-                                             
-                                             Password.check(requestPassword, rehashedCredential)
-                                           }
-                                           else
-                                           /*logger.debug("Line 333:    credential: " + requestPassword + "    secret: " + storedSecret);*/
-                                           Password.check(requestPassword, storedSecret)
-                                         })) {
-                 // Root level permissions are used in test environments, any other user should not have root level access in a production environment.
-                 if (resourceIdentityAndCred._1.role == AuthRoles.SuperUser &&
-                     resourceIdentityAndCred._1.resource != "root/root")
-                   Future { logger.warning(s"User resource ${resourceIdentityAndCred._1.resource}(resource: ${resourceIdentityAndCred._1.identifier.getOrElse("")}) has Root level access permissions") }
-                 
-                 Option(resourceIdentityAndCred._1) // Return the successfully authenticated Identity
-               }
-               else
-                None
-              case None => None
+            
+            def AuthenticationCheck (resourceIdentityAndCred: Option[(Identity2, String)]): Future[Option[Identity2]] = Future {
+              resourceIdentityAndCred match {
+              case Some(resourceIdentityAndCred) =>
+                // Guard, should never hit this condition. Reject the authentication attempt if true, as we cannot determine this resource's identity.
+                if (resourceIdentityAndCred._1.role == AuthRoles.Anonymous) {
+                  Future { logger.debug(s"Authentication: This resource ${resourceIdentityAndCred._1.resource} yields user archetype ${resourceIdentityAndCred._1.role}.") }
+                  None
+                }
+                // Guard, should never hit this condition. Reject the authentication attempt if true, as we cannot determine this resource's identity.
+                else if (resourceIdentityAndCred._1.isUser &&
+                        resourceIdentityAndCred._1.identifier.isEmpty) {
+                  Future { logger.debug(s"Authentication: The ${resourceIdentityAndCred._1.role} resource ${resourceIdentityAndCred._1.resource} is missing a UUID.") }
+                  None
+                }
+                else if (p.provideVerify(secret = resourceIdentityAndCred._2,
+                                          verifier =
+                                            // (Hashed credential in database, Plain-text password from Authorization: Basic header)
+                                          (storedSecret, requestPassword) => {
+                                            if (!storedSecret.startsWith("$argon2id") && BCrypt.checkpw(requestPassword, storedSecret)) {
+                                              Future { logger.debug(s"Resource ${resourceIdentityAndCred._1.resource}(${resourceIdentityAndCred._1.identifier.getOrElse("None")}):${resourceIdentityAndCred._1.role} has a credential that is using a legacy BCrypt algorithm. Rehashing this credential to Argon2id.") }
+                                              val rehashedCredential = Password.hash(requestPassword)
+                                              
+                                              Future { cacheResourceIdentity.put(p.identifier)(value = (resourceIdentityAndCred._1, rehashedCredential), ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds)) }
+                                              
+                                              Future {
+                                                resourceIdentityAndCred._1.role match {
+                                                  case AuthRoles.Agbot =>
+                                                    Future { db.run(AgbotsTQ.filter(_.id === resourceIdentityAndCred._1.resource).map(_.token).update(rehashedCredential))}
+                                                  case AuthRoles.Node =>
+                                                    Future { db.run(NodesTQ.filter(_.id === resourceIdentityAndCred._1.resource).map(_.token).update(rehashedCredential))}
+                                                  case _ =>
+                                                    Future { db.run(UsersTQ.filter(_.user === resourceIdentityAndCred._1.identifier.get).map(_.password).update(Option(rehashedCredential)))}
+                                                }
+                                              }
+                                              
+                                              Password.check(requestPassword, rehashedCredential)
+                                            }
+                                            else
+                                            /*logger.debug("Line 333:    credential: " + requestPassword + "    secret: " + storedSecret);*/
+                                            Password.check(requestPassword, storedSecret)
+                                          })) {
+                  // Root level permissions are used in test environments, any other user should not have root level access in a production environment.
+                  if (resourceIdentityAndCred._1.role == AuthRoles.SuperUser &&
+                      resourceIdentityAndCred._1.resource != "root/root")
+                    Future { logger.warning(s"User resource ${resourceIdentityAndCred._1.resource}(resource: ${resourceIdentityAndCred._1.identifier.getOrElse("")}) has Root level access permissions") }
+                  Option(resourceIdentityAndCred._1) // Return the successfully authenticated Identity
+                }
+                else
+                  None
+                case None => None
+              }
             }
+            
+            // Chains the input/output of our futures.
+            // Also yields a result this future can use due to nesting futures.
+            for {
+              fetchedIdentity <- identityCacheGet(resource)
+              //_ = logger.debug(s"Async returns: ${a._1.toString}, ${a._1.identifier.getOrElse("None")}")
+              authenticatedIdentity <- AuthenticationCheck(Option(fetchedIdentity)) fallbackTo(Future{None})
+            } yield authenticatedIdentity
           }
-          
-          // Chains the input/output of our futures.
-          // Also yields a result this future can use due to nesting futures.
-          for {
-            fetchedIdentity <- identityCacheGet(resource)
-            //_ = logger.debug(s"Async returns: ${a._1.toString}, ${a._1.identifier.getOrElse("None")}")
-            authenticatedIdentity <- AuthenticationCheck(Option(fetchedIdentity)) fallbackTo(Future{None})
-          } yield authenticatedIdentity
         }.flatMap(x => x) // Flattens the nested futures.
       case _ =>
         Future.successful(None)
     }
   }
-  
+
   //someday: use directive https://doc.pekko.io/docs/pekko-http/current/routing-dsl/directives/misc-directives/selectPreferredLanguage.html to support a different language for each client
   lazy val routes: Route =
     DebuggingDirectives.logRequestResult(requestResponseLogging _) {
