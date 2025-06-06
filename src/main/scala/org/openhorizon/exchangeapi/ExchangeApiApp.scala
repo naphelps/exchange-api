@@ -430,7 +430,7 @@ object ExchangeApiApp extends App
                                              Password.check(requestPassword, rehashedCredential)
                                            }
                                            else
-                                           logger.debug("Line 433:    credential: " + requestPassword + "    secret: " + storedSecret);
+                                           Future { logger.debug(s"Line 433:    ${p.identifier}    ${resourceIdentityAndCred._1}    credential: $requestPassword    secret: $storedSecret"); }
                                            Password.check(requestPassword, storedSecret)
                                          })) {
                  // Root level permissions are used in test environments, any other user should not have root level access in a production environment.

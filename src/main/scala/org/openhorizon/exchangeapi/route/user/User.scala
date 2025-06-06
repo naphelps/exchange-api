@@ -644,7 +644,7 @@ trait User extends JacksonSupport with AuthenticationSupport {
                     
                     Future {
                       if (validAttribute == "password" &&
-                        resource == identity.resource)
+                          resource == identity.resource)
                         cacheResourceIdentity.put(resource)(value = (identity, Password.hash(reqBody.password.getOrElse(""))),
                           ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds))
                       else
