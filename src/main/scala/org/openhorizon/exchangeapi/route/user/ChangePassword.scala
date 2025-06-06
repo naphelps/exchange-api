@@ -125,9 +125,9 @@ trait ChangePassword extends JacksonSupport with AuthenticationSupport {
                 }
                 if (0 < numUsersModified) {
                   Future {
-                    if (resource == identity.resource)
-                      cacheResourceIdentity.put(resource)(value = (identity, Password.hash(reqBody.newPassword)), ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds))
-                    else
+                  //  if (resource == identity.resource)
+                  //    cacheResourceIdentity.put(resource)(value = (identity, Password.hash(reqBody.newPassword)), ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds))
+                  //  else
                       cacheResourceIdentity.remove(resource)
                   }
                   

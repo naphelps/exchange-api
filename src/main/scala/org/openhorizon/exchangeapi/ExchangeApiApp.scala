@@ -70,6 +70,7 @@ import scalacache._
 import scalacache.caffeine._
 import scalacache.modes.scalaFuture._
 import com.github.benmanes.caffeine.cache.Caffeine
+import org.apache.pekko.http.scaladsl.model.Uri.Path
 import org.apache.pekko.pattern.BackoffOpts.onFailure
 import org.apache.pekko.routing.NoRouter
 import org.springframework.security.crypto.bcrypt.BCrypt
