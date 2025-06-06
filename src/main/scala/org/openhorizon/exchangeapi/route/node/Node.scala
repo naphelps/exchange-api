@@ -249,7 +249,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
           
               val nodes =
                 NodesTQ.filter(nodes => nodes.id === resource &&
-                               nodes.orgid === organization)
+                                        nodes.orgid === organization)
                        .filterIf(identity.isStandardUser)(nodes => nodes.owner === identity.identifier)
                        .filterIf(identity.isOrgAdmin || (identity.isAgbot && !identity.isMultiTenantAgbot))(nodes => nodes.orgid === identity.organization)
                        .filterIf(identity.isNode)(_.id === identity.resource)

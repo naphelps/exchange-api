@@ -250,7 +250,6 @@ trait User extends JacksonSupport with AuthenticationSupport {
                             Option(ExchMsg.translate("hub.admins.only.write.admins"))
                           else
                             None) {
-            logger.debug(s"POST /orgs/$organization/users/$username - Cleared all input validation rules.")
             val timestamp: java.sql.Timestamp = ApiTime.nowUTCTimestamp
             val uuid: java.util.UUID          = UUID.randomUUID()        // version 4
             
