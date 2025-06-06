@@ -111,4 +111,4 @@ jobs:
 
       - name: Test Failure Catch - Check k8s Pod Logs
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
-        run: sudo -E snap run microk8s kubectl logs -l app=$(kubectl get pods -o name --no-headers=true -n agent-namespace) --all-pods=true --all-containers=true -n agent-namespace
+        run: sudo -E snap run microk8s kubectl logs $(sudo -E kubectl get pods -o name --no-headers=true -n agent-namespace) --all-pods=true --all-containers=true -n agent-namespace
