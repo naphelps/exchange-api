@@ -371,10 +371,14 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                   complete {
                     db.run(Compiled(filteredNode).result.transactionally).map{
                       result =>
-                        if (result.length == 1)
-                          (HttpCode.OK, GetNodesResponse(result.map(node => node._1 -> new NodeTable(node._2)).toMap))
-                        else
+                        Future { logger.debug(s"GET /orgs/$organization/nodes/$node?attribute=$attribute - ${result.toString()}") }
+                        if (result.length == 1) {
+                          val response = result.map(node => node._1 -> new NodeTable(node._2)).toMap
+                          Future { logger.debug(s"GET /orgs/$organization/nodes/$node?attribute=$attribute - ${response.toString()}") }
+                          (HttpCode.OK, GetNodesResponse(response))
+                        } else
                           (HttpCode.NOT_FOUND, ApiResponse(ApiRespType.NOT_FOUND, ExchMsg.translate("not.found"))) // validateAccessToNode() will return ApiRespType.NOT_FOUND to the client so do that here for consistency
+                        
                     }
                   }
               }
