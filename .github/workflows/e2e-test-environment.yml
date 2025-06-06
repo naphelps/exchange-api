@@ -97,19 +97,26 @@ jobs:
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: docker ps -a
 
+      - name: Test Failure Catch - Check Agbot Log
+        if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
+        run: docker logs agbot
+
       - name: Test Failure Catch - Check Exchange Log
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: docker logs exchange-api
 
       - name: Test Failure Catch - Check k8s Pods
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
-        run: |
-          snap run microk8s.kubctl get pods -n agent-namespace -o wide
-          sudo -E /snap/bin/microk8s.kubctl get pods -n agent-namespace -o wide
+        run: snap run microk8s kubctl get pods -n agent-namespace -o wide
+
+      - name: Test Failure Catch - Check k8s Pods2
+        if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
+        run: sudo -E /snap/bin/microk8s.kubctl get pods -n agent-namespace -o wide
 
       - name: Test Failure Catch - Check k8s Pod Logs
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
-        run: |
-          snap run microk8s.kubctl logs --all-pods=true --all-containers=true -n agent-namespace
-          sudo -E /snap/bin/microk8s.kubctl logs --all-pods=true --all-containers=true -n agent-namespace
-        
+        run: snap run microk8s kubctl logs --all-pods=true --all-containers=true -n agent-namespace
+
+      - name: Test Failure Catch - Check k8s Pod Logs2
+        if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
+        run: sudo -E /snap/bin/microk8s.kubctl logs --all-pods=true --all-containers=true -n agent-namespace
