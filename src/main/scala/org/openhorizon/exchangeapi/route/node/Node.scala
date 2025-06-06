@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import jakarta.ws.rs.{DELETE, GET, PATCH, PUT, Path}
-import org.apache.pekko.http.scaladsl.model.Uri.Path
 import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshaller
 import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshaller.NoContentException
 import org.json4s.jackson.Serialization.read
