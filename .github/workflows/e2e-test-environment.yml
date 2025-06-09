@@ -9,11 +9,10 @@ on:
       - master
 
 
-runs-on: ubuntu-latest
-
 # Jobs executed when workflow is triggered
 jobs:
   test-policies:
+    runs-on: ubuntu-latest
 
     # Strategy allows specifying matrix axis(es) that will run for the test
     strategy:
@@ -94,10 +93,6 @@ jobs:
         id: test-runner
         run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test test-no-clean TEST_VARS=${{matrix.tests}}
 
-      - name: E2E Development Test NOLOOP=1
-        id: test-runner
-        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test test-no-clean TEST_VARS=${{matrix.tests}}
-
       - name: Test Failure Catch - Check Docker Containers
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: docker ps -a
@@ -131,6 +126,7 @@ jobs:
         run: sudo -E snap run microk8s kubectl logs -l app=agent --all-pods=true --all-containers=true -n agent-namespace
 
   test-patterns:
+    runs-on: ubuntu-latest
 
     # Strategy allows specifying matrix axis(es) that will run for the test
     strategy:
@@ -206,10 +202,6 @@ jobs:
 
       - name: Verify Built Container Images
         run: docker images
-
-      - name: E2E Development Test NOLOOP=1
-        id: test-runner
-        run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test test-no-clean TEST_VARS=${{matrix.tests}}
 
       - name: E2E Development Test NOLOOP=1
         id: test-runner
