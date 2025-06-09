@@ -126,14 +126,14 @@ jobs:
       # Push Docker images to Dockerhub
       - name: Publish Image to Dockerhub
         run: |
-          docker tag openhorizon/amd64_exchange-api:${IMAGE_VERSION} ${IMAGE_REPO}/amd64_exchange-api:testing
+          docker tag openhorizon/amd64_exchange-api:${IMAGE_VERSION} ${IMAGE_REPO}/amd64_exchange-api:2.127.0-testing0
           if [[ "$GITHUB_REF" == 'refs/heads/master' ]]; then
-            docker push ${IMAGE_REPO}/amd64_exchange-api:testing
-            docker tag ${IMAGE_REPO}/amd64_exchange-api:testing ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:testing
-            docker push ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:testing
+            docker push ${IMAGE_REPO}/amd64_exchange-api:2.127.0-testing0
+            docker tag ${IMAGE_REPO}/amd64_exchange-api:2.127.0-testing0 ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:2.127.0-testing0
+            docker push ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:2.127.0-testing0
           else
-            docker tag ${IMAGE_REPO}/amd64_exchange-api:testing ${IMAGE_REPO}/amd64_exchange-api:testing_${GH_BRANCH}
-            docker tag ${IMAGE_REPO}/amd64_exchange-api:testing ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:testing_${GH_BRANCH}
-            docker push ${IMAGE_REPO}/amd64_exchange-api:testing_${GH_BRANCH}
-            docker push ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:testing_${GH_BRANCH}
+            docker tag ${IMAGE_REPO}/amd64_exchange-api:2.127.0-testing0 ${IMAGE_REPO}/amd64_exchange-api:testing_${GH_BRANCH}
+            docker tag ${IMAGE_REPO}/amd64_exchange-api:2.127.0-testing0 ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:2.127.0-testing0_${GH_BRANCH}
+            docker push ${IMAGE_REPO}/amd64_exchange-api:2.127.0-testing0_${GH_BRANCH}
+            docker push ${GITHUB_CONTAINER_REGISTRY}/amd64_exchange-api:2.127.0-testing0_${GH_BRANCH}
           fi
