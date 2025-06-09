@@ -244,7 +244,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
     get {
       parameter ("attribute".?) {
         attribute =>
-          logger.debug(s"GET /orgs/$organization/nodes/$node?attribute=$attribute - By ${identity.resource}:${identity.role}")
+          Future { logger.debug(s"GET /orgs/$organization/nodes/$node?attribute=$attribute - By ${identity.resource}:${identity.role}") }
           
               val nodes =
                 NodesTQ.filter(nodes => nodes.id === resource &&
@@ -276,24 +276,24 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                               nodes._1.userInput))
               
               def validAttributes(attribute: String): Boolean =
-                attribute match {
+                attribute.toLowerCase match {
                   case "arch" |
-                       "clusterNamespace" |
+                       "clusternamespace" |
                        "ha_group" |
-                       "heartbeatIntervals" |
+                       "heartbeatintervals" |
                        "id" |
-                       "lastHeartbeat" |
-                       "lastUpdated" |
-                       "msgEndPoint" |
+                       "lastheartbeat" |
+                       "lastupdated" |
+                       "msgendpoint" |
                        "name" |
-                       "nodeType" |
+                       "nodetype" |
                        "owner" |
                        "pattern" |
-                       "publicKey" |
-                       "registeredServices" |
-                       "softwareVersions" |
+                       "publickey" |
+                       "registeredservices" |
+                       "softwareversions" |
                        "token" |
-                       "userInput" => true
+                       "userinput" => true
                   case _ => false
                 }
                 
@@ -306,27 +306,27 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                           (nodes joinLeft NodeGroupAssignmentTQ on ((someNode, assignment) => someNode._4 === assignment.node))
                             .joinLeft(NodeGroupTQ).on(_._2.map(_.group) === _.group)    // ((A left Join B) Left Join C)
                             .map(record => record._2.map(_.name).getOrElse(""))
-                        else if (attribute == "isNamespaceScoped")
+                        else if (attribute.toLowerCase == "isnamespacescoped")
                           nodes.map(record => record._5.toString())
                         else
                           nodes.map(record =>
-                            attribute match {
+                            attribute.toLowerCase match {
                               case "arch" => record._1
-                              case "clusterNamespace" => record._2.getOrElse("")
-                              case "heartbeatIntervals" => record._3
+                              case "clusternamespace" => record._2.getOrElse("")
+                              case "heartbeatintervals" => record._3
                               case "id" => record._4
-                              case "lastHeartbeat" => record._6.getOrElse("")
-                              case "lastUpdated" => record._7
-                              case "msgEndPoint" => record._8
+                              case "lastheartbeat" => record._6.getOrElse("")
+                              case "lastupdated" => record._7
+                              case "msgendpoint" => record._8
                               case "name" => record._9
-                              case "nodeType" => record._10
+                              case "nodetype" => record._10
                               case "owner" => record._11
                               case "pattern" => record._12
-                              case "publicKey" => record._13
-                              case "registeredServices" => record._14
-                              case "softwareVersions" => record._15
+                              case "publickey" => record._13
+                              case "registeredservices" => record._14
+                              case "softwareversions" => record._15
                               case "token" => record._16
-                              case "userInput" => record._17})
+                              case "userinput" => record._17})
                     } yield((attribute, value))
                   
                   complete {
@@ -341,6 +341,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                   }
                 
                 case _ => // Return the whole node
+                  Future { logger.debug(s"GET /orgs/$organization/nodes/$node?attribute=$attribute - $attribute did not match any valid attribute") }
                   val filteredNode =
                     for {
                       node <-
