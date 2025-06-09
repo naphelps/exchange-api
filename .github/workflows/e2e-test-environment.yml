@@ -8,11 +8,12 @@ on:
     branches:
       - master
 
+
+runs-on: ubuntu-latest
+
 # Jobs executed when workflow is triggered
 jobs:
   test-policies:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
 
     # Strategy allows specifying matrix axis(es) that will run for the test
     strategy:
@@ -130,8 +131,6 @@ jobs:
         run: sudo -E snap run microk8s kubectl logs -l app=agent --all-pods=true --all-containers=true -n agent-namespace
 
   test-patterns:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
 
     # Strategy allows specifying matrix axis(es) that will run for the test
     strategy:
