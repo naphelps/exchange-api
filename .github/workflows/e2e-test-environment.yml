@@ -97,11 +97,11 @@ jobs:
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: docker ps -a
 
-      - name: Test Failure Catch - Check Agbot Log
+      - name: Test Failure Catch - Check Agbot Docker Log
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: docker logs agbot
 
-      - name: Test Failure Catch - Check Exchange Log
+      - name: Test Failure Catch - Check Exchange Docker Log
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: docker logs exchange-api
 
@@ -124,7 +124,3 @@ jobs:
       - name: Test Failure Catch - Check k8s Pod Logs
         if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
         run: sudo -E snap run microk8s kubectl logs -l app=agent --all-pods=true --all-containers=true -n agent-namespace
-
-      - name: Test Failure Catch - Check k8s Pod Logs2
-        if: ${{ failure() && steps.test-runner.conclusion == 'failure' }}
-        run: sudo -E snap run microk8s kubectl logs $(sudo -E snap run microk8s kubectl get pods -o name --no-headers=true -n agent-namespace) --all-pods=true --all-containers=true -n agent-namespace

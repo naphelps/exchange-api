@@ -975,9 +975,9 @@ trait Node extends JacksonSupport with AuthenticationSupport {
               val modified_at: Timestamp = ApiTime.nowUTCTimestamp
               val modified_at_str: String =
                 fixFormatting(modified_at.toInstant
-                  .atZone(ZoneId.of("UTC"))
-                  .withZoneSameInstant(ZoneId.of("UTC"))
-                  .toString)
+                                         .atZone(ZoneId.of("UTC"))
+                                         .withZoneSameInstant(ZoneId.of("UTC"))
+                                         .toString)
               
               val hashedToken: Option[String] =
                 if (reqBody.token.isDefined)
