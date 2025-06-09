@@ -12,14 +12,6 @@ on:
       - v2.110
       - v2.87
 
-# Variables available to all jobs
-env:
-  IMAGE_REPO: ${{ vars.DOCKERHUB_REPO }}
-  GITHUB_CONTAINER_REGISTRY: ghcr.io/${{ github.repository_owner }}
-  GH_BRANCH: ${{ github.ref_name }}
-  RUN_NUMBER: ${{ github.run_number }}
-  RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
-
 # Jobs that will run when the workflow is triggered
 jobs:
   # This job will build and then push to docker hub
@@ -35,14 +27,6 @@ jobs:
       # Checkout our Github repo
       - name: Checkout Github Repo
         uses: actions/checkout@v3
-
-      - name: Log in to the Container registry
-        uses: docker/login-action
-        with:
-          registry: https://ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
 
       # Upgrade Docker engine version, needed for building images.
       - name: Install Latest Docker Version
@@ -62,7 +46,6 @@ jobs:
           apps: sbt
           jvm: temurin:1.21
 
-
       # Authenticate GHCR to allow pushing to our alternate image registry
       - name: Login to Github Container Registry
         uses: docker/login-action@v2
@@ -71,15 +54,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Compile
-      - name: Compile
-        run: |
-          sbt compile
-
-      # Package
-      - name: Package
-        run: |
-          sbt package
 
       # Docker Build and Publish Local
       ## When creating docker image sbt will ~for some reason~ mark the logs as [error] when it should be [info]
