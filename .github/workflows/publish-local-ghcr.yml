@@ -1,5 +1,5 @@
 # Name of the workflow
-name: build-push
+name: publish-local-ghcr
 
 # This workflow will run when there is a push (including merge) to the listed branches
 on:
