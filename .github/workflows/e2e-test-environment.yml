@@ -17,7 +17,7 @@ jobs:
     # Strategy allows specifying matrix axis(es) that will run for the test
     strategy:
       matrix:
-        tests: ["NOLOOP=1 NOKUBE=1"]
+        tests: ["NOLOOP=1"]
 
     # Variables that are available to all steps in the job
     env:
@@ -131,7 +131,7 @@ jobs:
     # Strategy allows specifying matrix axis(es) that will run for the test
     strategy:
       matrix:
-        tests: ["NOLOOP=1 NOKUBE=1 TEST_PATTERNS=sall"]
+        tests: ["NOLOOP=1 TEST_PATTERNS=sall"]
 
     # Variables that are available to all steps in the job
     env:
