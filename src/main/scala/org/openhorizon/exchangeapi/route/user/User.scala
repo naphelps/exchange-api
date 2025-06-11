@@ -18,6 +18,7 @@ import org.openhorizon.exchangeapi.ExchangeApiApp
 import org.openhorizon.exchangeapi.ExchangeApiApp.{cacheResourceIdentity, cacheResourceOwnership, getOwnerOfResource, myUserPassAuthenticator, routes}
 import org.openhorizon.exchangeapi.auth.{Access, AuthCache, AuthRoles, AuthenticationSupport, BadInputException, IUser, Identity, Identity2, OrgAndId, Password, Role, TUser}
 import org.openhorizon.exchangeapi.table.user.{UserRow, UsersTQ, User => UserTable}
+import org.openhorizon.exchangeapi.table.apikey.{ApiKeyRow, ApiKeysTQ,ApiKeyMetadata}
 import org.openhorizon.exchangeapi.utility.{ApiRespType, ApiResponse, ApiTime, Configuration, ExchMsg, ExchangePosgtresErrorHandling, HttpCode, StrConstants}
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.{CompiledStreamingExecutable, MappedProjection}
@@ -29,6 +30,7 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import scalacache.modes.scalaFuture._
+import scala.concurrent.Future
 
 
 @Path("/v1/orgs/{organization}/users/{username}")
@@ -60,7 +62,14 @@ trait User extends JacksonSupport with AuthenticationSupport {
       "admin": false,
       "email": "string",
       "lastUpdated": "string",
-      "updatedBy": "string"
+      "updatedBy": "string",
+      "apikeys": [
+        {
+          "id": "string",
+          "description": "string",
+          "lastUpdated": "string"
+        }
+      ]
     }
   },
   "lastIndex": 0
@@ -130,23 +139,47 @@ trait User extends JacksonSupport with AuthenticationSupport {
                                      users._1.username), users._2)))
         } yield users.map(user => (user._1.mapTo[UserRow], user._2))
         
-      complete {
-        db.run(getUser.result.transactionally.asTry).map {
-          case Success(result) =>
-            logger.debug(s"GET /orgs/$organization/users/$username result size: " + result.size)
-           
-            if (result.nonEmpty)
-              (StatusCodes.OK, GetUsersResponse( result.map(result => s"${result._1.organization}/${result._1.username}" -> new UserTable(result)).toMap)) // Ugly mapping, TODO: redesign response body
-            else
-              (StatusCodes.NotFound, GetUsersResponse())
-          case Failure(t: org.postgresql.util.PSQLException) =>
-            ExchangePosgtresErrorHandling.ioProblemError(t, ExchMsg.translate("user.not.added", t.toString))
-          case Failure(t) =>
-            (HttpCode.BAD_INPUT, ApiResponse(ApiRespType.BAD_INPUT, ExchMsg.translate("user.not.updated", t.toString)))
-        }
-      }
+      complete({
+            db.run(getUser.result.transactionally).flatMap { result =>
+                  // logger.debug(s"GET /orgs/$organization/users/$username result size: " + result.size)
+
+                  if (result.nonEmpty) {
+                        val userResult = result.head
+                        val userRow = userResult._1
+
+                        val apiKeysQuery = ApiKeysTQ.getByUser(userRow.user)
+                        db.run(apiKeysQuery.result).map { apiKeys =>
+                              val apiKeyMetadataList = apiKeys.map(apiKeyRow =>
+                                    new ApiKeyMetadata(apiKeyRow, null)
+                              )
+
+                              val user = new UserTable(userResult, Some(apiKeyMetadataList))
+                              val userMap: Map[String, UserTable] =
+                                    Map(s"${userRow.organization}/${userRow.username}" -> user) // Ugly mapping, TODO: redesign response body
+
+                              (StatusCodes.OK, GetUsersResponse(userMap, 0))
+                        }.recover { case _ =>
+                              val user = new UserTable(userResult, Some(Seq.empty))
+                              val userMap: Map[String, UserTable] =
+                                    Map(s"${userRow.organization}/${userRow.username}" -> user)
+
+                              (StatusCodes.OK, GetUsersResponse(userMap, 0))
+                        }
+                  } else {
+                        Future.successful((StatusCodes.NotFound, GetUsersResponse()))
+                  }
+            }.recover {
+                  case t: org.postgresql.util.PSQLException =>
+                        ExchangePosgtresErrorHandling.ioProblemError(
+                              t, ExchMsg.translate("user.not.added", t.toString))
+
+                  case t =>
+                        (HttpCode.BAD_INPUT,
+                              ApiResponse(ApiRespType.BAD_INPUT, ExchMsg.translate("user.not.updated", t.toString)))
+            }
+      })
     }
-  
+
   // =========== POST /orgs/{organization}/users/{username} ===============================
   @POST
   @Operation(
@@ -220,6 +253,8 @@ trait User extends JacksonSupport with AuthenticationSupport {
           
           validateWithMsg(if(Option(reqBody.password).isEmpty || Option(reqBody.email).isEmpty || reqBody.password == null || reqBody.email == null)
                             Option(ExchMsg.translate("password.must.be.non.blank.when.creating.user"))
+                          else if (Set("apikey", "iamapikey").contains(username.toLowerCase)) //block creation of user with reserved usernames 'apikey' or 'iamapikey
+                            Option(ExchMsg.translate("user.reserved.name")) 
                           else if (reqBody.password.isBlank || reqBody.password.isEmpty)
                             Option(ExchMsg.translate("password.must.be.non.blank.when.creating.user"))
                           else if (organization == "root" &&
