@@ -366,7 +366,13 @@ object ExchangeApiApp extends App
   
   val reg: Regex = """^(\S*?)/(\S*)$""".r
   
-  
+  def getIdentityCacheValueFromDB(organization: String, username: String): Future[(Identity2, String)] = {
+    getResourceIdentityAndPassword(organization, username).map {
+      // Yield this Resource's identity metadata and construct a future identity object. Resource's stored credential tags along.
+      // This object will be returned and used if authenticated.
+      identityMetadata: ((Boolean, Option[UUID], Boolean, Option[UUID], Int), String) => (new Identity2(organization, identityMetadata._1, username), identityMetadata._2)
+    }
+  }
   
   def myUserPassAuthenticator(credentials: Credentials): Future[Option[Identity2]] = {
     credentials match {
@@ -418,16 +424,13 @@ object ExchangeApiApp extends App
               }
             } yield result
             verifiedIdentityFut
-          } else {
+          }
+          else {
             def identityCacheGet (resource: String): Future[(Identity2, String)] = {
               cacheResourceIdentity.cachingF(resource)(ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds)) {
                 // On cache miss execute this block to try and find what the value should be.
                 // If found add to the cache for next time.
-                getResourceIdentityAndPassword(organization, username).map {
-                  // Yield this Resource's identity metadata and construct a future identity object. Resource's stored credential tags along.
-                  // This object will be returned and used if authenticated.
-                  identityMetadata: ((Boolean, Option[UUID], Boolean, Option[UUID], Int), String) => (new Identity2(organization, identityMetadata._1, username), identityMetadata._2)
-                }
+                getIdentityCacheValueFromDB(organization: String, username: String)
               }
             }
             
@@ -488,9 +491,41 @@ object ExchangeApiApp extends App
             // Also yields a result this future can use due to nesting futures.
             for {
               fetchedIdentity <- identityCacheGet(resource)
+              fetchIdentityRetry <- getIdentityCacheValueFromDB(organization = organization, username = username)
               //_ = logger.debug(s"Async returns: ${a._1.toString}, ${a._1.identifier.getOrElse("None")}")
               authenticatedIdentity <- AuthenticationCheck(Option(fetchedIdentity)) fallbackTo(Future{None})
-            } yield authenticatedIdentity
+              authenticatedIdentityRetry <- AuthenticationCheck(Option(fetchIdentityRetry)) fallbackTo(Future{None})
+              /*
+               * Two layer speculative execution schema. If the normal path fails we attempt to recover with the
+               * retry (however far along it gets by the time we need it). If the first attempt succeeds we throw away
+               * the remaining work. This does not, in effect, effect authentication by api key schema. Api keys
+               * cannot be cached, so any retry attempt would (more than likely) fail a second time through
+               * anyway, as we have to do a full O(n) scan on all keys the first attempt.
+               */
+              speculativeRetry <-
+                Future {
+                  if (authenticatedIdentity.isDefined)
+                    authenticatedIdentity
+                  else {
+                    /*
+                     * If the retry database query returns nothing, remove the cached value if it exists. If the
+                     * database query returned a result then preemptively overwrite the cache with the found values.
+                     * On overwrite, the next temporal performance of the call cannot be any worse
+                     * (first attempt authentication failure) than the current, but it can be better
+                     * (potential cache hit).
+                     */
+                    Future {
+                      Option(fetchIdentityRetry) match {
+                        case Some(value) =>
+                          cacheResourceIdentity.put(keyParts = resource)(value = fetchIdentityRetry, ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds))
+                        case _ =>
+                          cacheResourceIdentity.remove(resource)
+                      }
+                    }
+                    authenticatedIdentityRetry
+                  }
+                }
+            } yield speculativeRetry
           }
         }.flatMap(x => x) // Flattens the nested futures.
       case _ =>
