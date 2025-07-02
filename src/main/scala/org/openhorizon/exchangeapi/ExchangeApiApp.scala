@@ -601,7 +601,7 @@ object ExchangeApiApp extends App
     userApiKeys(authenticatedIdentity)
   }
   
-  def oauthAuthenticator(a: String)(credentials: Credentials): Future[Option[Identity2]] = {
+  def oauthAuthenticator(tokenOrganization: String)(credentials: Credentials): Future[Option[Identity2]] = {
     credentials match {
       case bearerCredential@Credentials.Provided(token) =>
         Future {
@@ -669,6 +669,7 @@ object ExchangeApiApp extends App
               for {
                 organizationAccountMap <-
                   Compiled(OrgsTQ.filter(organizations => organizations.orgid =!= "root")
+                                 .filter(organizations => organizations.orgid === tokenOrganization)
                                  .filter(organizations => organizations.tags.+>>("group") inSet userMetadata._2)
                                  .map(_.orgid))
                     .result
@@ -732,6 +733,7 @@ object ExchangeApiApp extends App
               for {
                 organizationAccountMap <-
                   Compiled(OrgsTQ.filter(organizations => organizations.orgid =!= "root")
+                                 .filter(organizations => organizations.orgid === tokenOrganization)
                                  .filter(organizations => organizations.tags.+>>("ibmcloud_id") like userMetadata._1)
                                  .map(_.orgid))
                     .result
