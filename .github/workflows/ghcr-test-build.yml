@@ -63,6 +63,6 @@ jobs:
 
       - name: publish to local ghcr
         run: |
-          docker image push ghcr.io/naphelps/amd64_exchange-api:2.130.0-testing-0
+          docker image push ghcr.io/naphelps/amd64_exchange-api:2.130.0-testing-1
 
 
