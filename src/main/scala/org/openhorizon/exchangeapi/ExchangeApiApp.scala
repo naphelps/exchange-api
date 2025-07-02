@@ -396,8 +396,8 @@ object ExchangeApiApp extends App
             Future.successful(None)
             
           }
-          else if (username == "iamtoken" || username == "token")
-            oauthAuthenticator(organization)(Credentials.apply())
+          //else if (username == "iamtoken" || username == "token")
+            //oauthAuthenticator(organization)(Credentials.apply())
           else if (username == "apikey") {
             val getApiKeysByOrg = Compiled((org: Rep[String]) =>
               ApiKeysTQ.filter(_.orgid === org)
