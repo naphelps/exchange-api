@@ -79,9 +79,11 @@ jobs:
     steps:
       - name: Restore Checkout & Compile
         id: cache-restore
-        uses: actions/cache/restore@v4
+        uses: actions/cache@v4
         with:
           path: |
+            .
+            ./target
             target
           key: checkout-and-compile-${{ github.sha }}
 
