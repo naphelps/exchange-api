@@ -35,6 +35,7 @@ jobs:
             project
             src
             target
+            /home/runner/.cache/coursier/*
           key: ${{ github.ref }}-${{ github.sha }}
 
       - name: Cache target
@@ -45,7 +46,7 @@ jobs:
           key: ${{ github.ref }}-${{ github.sha }}
 
       - name: Checkout Github Repo
-        if: steps.cache.outputs.cache-hit != 'true'
+        #if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           clean: false
