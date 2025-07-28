@@ -47,6 +47,8 @@ jobs:
       - name: Checkout Github Repo
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
+        with:
+          clean: false
 
       - name: Configure Env Vars
         run: |
