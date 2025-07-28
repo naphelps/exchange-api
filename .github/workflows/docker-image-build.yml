@@ -24,7 +24,7 @@ jobs:
           path: |
             ./*
             /home/runner/.cache/coursier/*
-          key: checkout-and-compile-${{ github.sha }}
+          key: checkout-and-compile-${{ runner.os }}-${{ github.sha }}
 
       # On cache hit, nothing will need to be downloaded.
       # By not downloading and overwriting our project directories anf files, SBT will need to not rebuild.
@@ -81,13 +81,11 @@ jobs:
         id: cache-restore
         uses: actions/cache@v4
         with:
-          path: |
-            ./*
-            ~/target
-          key: checkout-and-compile-${{ github.sha }}
+          path: ./*
+          key: container-build-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
-            checkout-and-compile-${{ github.sha }}
-            -${{ github.sha }}-
+            checkout-and-compile-${{ runner.os }}-${{ github.sha }}
+            -${{ github.sha }}
 
       - name: Checkout Github Repo
         #if: steps.cache.outputs.cache-hit != 'true'
