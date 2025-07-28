@@ -50,7 +50,7 @@ jobs:
       # On cache hit, project has already been compiled, packaged, and staged. Nothing to do.
       - name: Compile, Package, and Stage Dockerfile
         run: |
-          sbt Docker / Stage
+          sbt Docker/stage
 
       - name: ls
         continue-on-error: true
