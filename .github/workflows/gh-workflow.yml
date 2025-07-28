@@ -19,30 +19,17 @@ jobs:
       - name: Cache source
         uses: actions/cache@v4
         with:
-          path: |
-            .git
-            .github
-            .gitignore
-            .travis.yml
-            CHANGELOG.txt
-            LICENSE.txt
-            MAINTAINERS.md
-            Makefile
-            README.md
-            build.sbt
-            docs
-            project
-            src
-            target
-          key: ${{ github.ref }}
+          path: *
+          key: ${{ github.ref }}-{{ github-sha }}
 
       - name: Cache target
         uses: actions/cache@v4
         with:
           path: target/*
-          key: ${{ github.ref }}
+          key: ${{ github.ref }}-{{ github-sha }}
 
       - name: Checkout Github Repo
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
 
       - name: Configure Env Vars
