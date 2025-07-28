@@ -16,10 +16,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cache
+      - name: Cache source
         uses: actions/cache@v4
         with:
-          path: target
+          path: |
+            .github
+            docs
+            project
+            src
+            .gitignore
+            .travis.yml
+            build.sbt
+            LICENSE.txt
+            MAINTAINERS.md
+            Makefile
+            README.md
+            changelog.txt
+          include-hidden-files: true
+          key: ${{ github.ref }}
+
+      - name: Cache target
+        uses: actions/cache@v4
+        with:
+          path: target/*
           key: ${{ github.ref }}
 
       - name: Checkout Github Repo
@@ -43,12 +62,12 @@ jobs:
 
       - name: ls
         continue-on-error: true
-        run: ls
+        run: ls -ahl
 
       - name: ls ./target
         continue-on-error: true
-        run: ls ./target
+        run: ls -ah ./target
 
       - name: ls ./target/scala-2.13
         continue-on-error: true
-        run: ls ./target/scala-2.13
+        run: ls -ah ./target/scala-2.13
