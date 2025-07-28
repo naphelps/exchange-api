@@ -3,12 +3,6 @@ name: future-name
 on:
   workflow_dispatch:
   workflow_call:
-    branches:
-      - master
-      - v2.124
-      - v2.122
-      - v2.110
-      - v2.87
 
 env:
   IMAGE_REPO: ${{ vars.DOCKERHUB_REPO }}
