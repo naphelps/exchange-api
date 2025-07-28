@@ -20,13 +20,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: *
-          key: ${{ github.ref }}-{{ github-sha }}
+          key: ${{ github.ref }}-${{ github-sha }}
 
       - name: Cache target
         uses: actions/cache@v4
         with:
           path: target/*
-          key: ${{ github.ref }}-{{ github-sha }}
+          key: ${{ github.ref }}-${{ github-sha }}
 
       - name: Checkout Github Repo
         if: steps.cache.outputs.cache-hit != 'true'
