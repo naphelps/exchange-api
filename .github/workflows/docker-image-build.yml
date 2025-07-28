@@ -21,6 +21,8 @@ jobs:
           echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
           echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
 
+      - uses: ./.github/workflows/gh-workflow.yml
+
       - name: Setup Scala
         uses: coursier/setup-action@v1
         with:
