@@ -81,7 +81,8 @@ jobs:
         id: cache-restore
         uses: actions/cache/restore@v4
         with:
-          path: .
+          path: |
+            target
           key: checkout-and-compile-${{ github.sha }}
 
       - name: Checkout Github Repo
@@ -118,6 +119,6 @@ jobs:
           cache-from: type=registry,ref=user/app:buildcache
           cache-to: type=registry,ref=user/app:buildcache,mode=max
           context: .
-          file: ./target/docker/stage/Dockerfile
+          file: target/docker/stage/Dockerfile
           push: false
           tags: ghcr.io/naphelps/exchange-api:latest
