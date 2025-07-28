@@ -41,8 +41,8 @@ jobs:
             /home/runner/.ivy2/cache
             /home/runner/.sbt
             /home/runner/.cache/coursier/*
-          key: checkout-and-compile-${{ runner.os }}-${{ hashFiles('**/build.sbt') }}
-          restore-keys: checkout-and-compile-${{ runner.os }}-
+          key: checkout-and-compile-dependencies-${{ runner.os }}-${{ hashFiles('**/build.sbt') }}
+          restore-keys: checkout-and-compile-dependencies-${{ runner.os }}-
 
       - name: Configure Env Vars
         run: |
@@ -138,7 +138,7 @@ jobs:
         with:
           cache-from: type=registry,ref=user/app:buildcache
           cache-to: type=registry,ref=user/app:buildcache,mode=max
-          context: .
+          context: target/docker/stage
           file: target/docker/stage/Dockerfile
           push: false
           tags: ghcr.io/naphelps/exchange-api:latest
