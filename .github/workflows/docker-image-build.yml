@@ -17,15 +17,15 @@ jobs:
 
     steps:
       # Cache the entire project directory, Corsair dependency cache, and deliverables.
-      - name: Cache source
+      - name: Cache Project
         id: cache
         uses: actions/cache@v4
         with:
           path: ./*
           key: checkout-and-compile-${{ runner.os }}-${{ github.sha }}
 
-      - name: Cache source
-        id: cache
+      - name: Cache Dependencies
+        id: cache-dependencies
         uses: actions/cache@v4
         with:
           path: /home/runner/.cache/coursier/*
