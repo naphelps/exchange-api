@@ -34,7 +34,6 @@ jobs:
     # Variables that are available to all steps in the job
     env:
       DEBIAN_FRONTEND: noninteractive
-      DOCKER_EXCH_TAG: 2.142.1
       DOCKER_NETWORK: exchange-api-network
       DOCKER_REGISTRY: openhorizon
       EXCHANGE_DB_NAME: exchange
@@ -42,10 +41,9 @@ jobs:
       EXCHANGE_DB_NUMTHREADS: 9
       EXCHANGE_DB_PORT: 5432
       EXCHANGE_DB_USER: admin
-      EXCHANGE_IMAGE_TAG: 2.142.1
-      EXCHANGE_LOG_LEVEL: DEBUG
-      EXCHANGE_LOG_SCALACACHE_CAFFEINE: INFO
-      EXCHANGE_PEKKO_LOGLEVEL: DEBUG
+      EXCHANGE_LOG_LEVEL: ${EXCHANGE_LOG_LEVEL:-DEBUG}
+      EXCHANGE_LOG_SCALACACHE_CAFFEINE: ${EXCHANGE_LOG_SCALACACHE_CAFFEINE:-INFO}
+      EXCHANGE_PEKKO_LOGLEVEL: ${EXCHANGE_PEKKO_LOGLEVEL:-DEBUG}
       EXCHANGE_ROOT_PW: ci-password
       GOPATH: /home/runner/work/exchange-api/exchange-api/go
       DOCKER_CONFIG: /home/runner/.docker-config
@@ -88,6 +86,11 @@ jobs:
 
       - name: Verify Docker version
         run: docker --version
+
+      - name: Set Exchange Version
+        run: |
+          echo "DOCKER_EXCH_TAG=$(head -n 1 src/main/resources/version.txt)" >> $GITHUB_ENV
+          echo "EXCHANGE_IMAGE_TAG=$(head -n 1 src/main/resources/version.txt)" >> $GITHUB_ENV
 
       - name: Build Exchange Container Image
         run: sbt Docker/publishLocal
@@ -157,7 +160,6 @@ jobs:
     # Variables that are available to all steps in the job
     env:
       DEBIAN_FRONTEND: noninteractive
-      DOCKER_EXCH_TAG: 2.142.1
       DOCKER_NETWORK: exchange-api-network
       DOCKER_REGISTRY: openhorizon
       EXCHANGE_DB_NAME: exchange
@@ -165,10 +167,9 @@ jobs:
       EXCHANGE_DB_NUMTHREADS: 9
       EXCHANGE_DB_PORT: 5432
       EXCHANGE_DB_USER: admin
-      EXCHANGE_IMAGE_TAG: 2.142.1
-      EXCHANGE_LOG_LEVEL: DEBUG
-      EXCHANGE_LOG_SCALACACHE_CAFFEINE: INFO
-      EXCHANGE_PEKKO_LOGLEVEL: DEBUG
+      EXCHANGE_LOG_LEVEL: ${EXCHANGE_LOG_LEVEL:-DEBUG}
+      EXCHANGE_LOG_SCALACACHE_CAFFEINE: ${EXCHANGE_LOG_SCALACACHE_CAFFEINE:-INFO}
+      EXCHANGE_PEKKO_LOGLEVEL: ${EXCHANGE_PEKKO_LOGLEVEL:-DEBUG}
       EXCHANGE_ROOT_PW: ci-password
       GOPATH: /home/runner/work/exchange-api/exchange-api/go
       DOCKER_CONFIG: /home/runner/.docker-config
@@ -211,6 +212,11 @@ jobs:
 
       - name: Verify Docker version
         run: docker --version
+
+      - name: Set Exchange Version
+        run: |
+          echo "DOCKER_EXCH_TAG=$(head -n 1 src/main/resources/version.txt)" >> $GITHUB_ENV
+          echo "EXCHANGE_IMAGE_TAG=$(head -n 1 src/main/resources/version.txt)" >> $GITHUB_ENV
 
       - name: Build Exchange Container Image
         run: sbt Docker/publishLocal
