@@ -20,19 +20,20 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
+            .git
             .github
-            docs
-            project
-            src
             .gitignore
             .travis.yml
-            build.sbt
+            CHANGELOG.txt
             LICENSE.txt
             MAINTAINERS.md
             Makefile
             README.md
-            changelog.txt
-          include-hidden-files: true
+            build.sbt
+            docs
+            project
+            src
+            target
           key: ${{ github.ref }}
 
       - name: Cache target
