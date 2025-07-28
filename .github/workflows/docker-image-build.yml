@@ -82,10 +82,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ./*
-          key: container-build-${{ runner.os }}-${{ github.sha }}
+          key: checkout-and-compile-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             checkout-and-compile-${{ runner.os }}-${{ github.sha }}
             -${{ github.sha }}
+          fail-on-cache-miss: true
 
       - name: Checkout Github Repo
         #if: steps.cache.outputs.cache-hit != 'true'
