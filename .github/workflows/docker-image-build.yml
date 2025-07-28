@@ -1,0 +1,51 @@
+name: Build Container Images
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  IMAGE_REPO: ${{ vars.DOCKERHUB_REPO }}
+  GITHUB_CONTAINER_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  GH_BRANCH: ${{ github.ref_name }}
+  RUN_NUMBER: ${{ github.run_number }}
+  RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
+
+jobs:
+  something2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure Env Vars
+        run: |
+          BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
+          echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
+          echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+
+      - name: Setup Scala
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+          jvm: temurin:1.21
+
+      # QEMU for software emulation of multiple platforms
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Docker buildx/buildkit for multi-platform builds
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: exchange-api-${{ github.sha }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          cache-from: type=registry,ref=user/app:buildcache
+          cache-to: type=registry,ref=user/app:buildcache,mode=max
+          context: .
+          file: ./target/docker/stage/Dockerfile
+          push: false
+          tags: ghcr.io/naphelps/exchange-api:latest

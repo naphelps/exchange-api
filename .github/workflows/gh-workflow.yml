@@ -1,8 +1,8 @@
-name: future-name
+name: Checkout & Compile
 
 on:
-  workflow_dispatch:
   workflow_call:
+  workflow_dispatch:
 
 env:
   IMAGE_REPO: ${{ vars.DOCKERHUB_REPO }}
@@ -16,35 +16,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Cache the entire project directory, Corsair dependency cache, and deliverables.
       - name: Cache source
         id: cache
         uses: actions/cache@v4
         with:
           path: |
-            .git
-            .github
-            .gitignore
-            .travis.yml
-            CHANGELOG.txt
-            LICENSE.txt
-            MAINTAINERS.md
-            Makefile
-            README.md
-            build.sbt
-            docs
-            project
-            src
-            target
+            .
             /home/runner/.cache/coursier/*
-          key: ${{ github.ref }}-${{ github.sha }}
+          key: ${{ github.sha }}
 
-      - name: Cache target
-        id: cache-target
-        uses: actions/cache@v4
-        with:
-          path: target/*
-          key: ${{ github.ref }}-${{ github.sha }}
-
+      # On cache hit, nothing will need to be downloaded.
+      # By not downloading and overwriting our project directories anf files, SBT will need to not rebuild.
+      # Based on directory and file system change timestamps.
       - name: Checkout Github Repo
         #if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -63,9 +47,10 @@ jobs:
           apps: sbt
           jvm: temurin:1.21
 
-      - name: Compile
+      # On cache hit, project has already been compiled, packaged, and staged. Nothing to do.
+      - name: Compile, Package, and Stage Dockerfile
         run: |
-          sbt compile
+          sbt Docker / Stage
 
       - name: ls
         continue-on-error: true
@@ -78,3 +63,11 @@ jobs:
       - name: ls ./target/scala-2.13
         continue-on-error: true
         run: ls -ah ./target/scala-2.13
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          include-hidden-files: true
+          name: exchange-api-${{ github.sha }}
+          path: |
+            ./**/*
