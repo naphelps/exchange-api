@@ -22,7 +22,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.
+            ./*
             /home/runner/.cache/coursier/*
           key: checkout-and-compile-${{ github.sha }}
 
@@ -75,14 +75,14 @@ jobs:
 
   something2:
     runs-on: ubuntu-latest
-    needs: something
+    needs: [something]
     steps:
       - name: Restore Checkout & Compile
         id: cache-restore
         uses: actions/cache@v4
         with:
           path: |
-            ~/.
+            ./*
             ~/target
           key: checkout-and-compile-${{ github.sha }}
           restore-keys: |
