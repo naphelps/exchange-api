@@ -1,0 +1,54 @@
+name: future-name
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    branches:
+      - master
+      - v2.124
+      - v2.122
+      - v2.110
+      - v2.87
+
+env:
+  IMAGE_REPO: ${{ vars.DOCKERHUB_REPO }}
+  GITHUB_CONTAINER_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  GH_BRANCH: ${{ github.ref_name }}
+  RUN_NUMBER: ${{ github.run_number }}
+  RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
+
+jobs:
+  something:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Github Repo
+        uses: actions/checkout@v3
+
+      - name: Configure Env Vars
+        run: |
+          BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
+          echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
+          echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+
+      - name: Setup Scala
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+          jvm: temurin:1.21
+
+      - name: Compile
+        run: |
+          sbt compile
+
+      - name: ls
+        continue-on-error: true
+        run: ls
+
+      - name: ls ./target
+        continue-on-error: true
+        run: ls ./target
+
+      - name: ls ./target/scala-2.13
+        continue-on-error: true
+        run: ls ./target/scala-2.13
