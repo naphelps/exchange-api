@@ -143,9 +143,10 @@ jobs:
 
       # BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
       # echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
-      - name: Configure Environment Variables
-        run: |
-          echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
+      - name: Exchange Version
+        id: exchange-version
+        continue-on-error: true
+        run: echo "version=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
       #- name: Setup Scala
       #  uses: coursier/setup-action@v1
@@ -202,13 +203,14 @@ jobs:
             org.opencontainers.image.title=Exchange
             org.opencontainers.image.url=
             org.opencontainers.image.vendor=Open Horizon
-            org.opencontainers.image.version=${IMAGE_VERSION}
+            org.opencontainers.image.version=${{ steps.exchange-version.outputs.version }}
+          attests: type=sbom,generator=image
           cache-from: type=gha
           cache-to: type=gha,mode=max
           context: target/docker/stage
           file: target/docker/stage/Dockerfile
           provenance: mode=max
-          push: false
+          push: true
           sbom: true
           tags: ghcr.io/naphelps/exchange-api:latest
 
