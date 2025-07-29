@@ -164,7 +164,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           install: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64/v8
 
       # Authenticate GHCR to allow pushing to our alternate image registry
       - name: Login to Github Container Registry
@@ -209,6 +209,21 @@ jobs:
           cache-to: type=gha,mode=max
           context: target/docker/stage
           file: target/docker/stage/Dockerfile
+          labels: |
+            org.opencontainers.image.authors=
+            org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest }}
+            org.opencontainers.image.base.name=ubi10-minimal:latest
+            org.opencontainers.image.created=${{ steps.image-creation.outputs.creation }}
+            org.opencontainers.image.description=Open Horizon's Exchange Server and REST API
+            org.opencontainers.image.documentation=https://open-horizon.github.io/
+            org.opencontainers.image.licenses=Apache-2.0
+            org.opencontainers.image.ref.name=
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/open-horizon/exchange-api
+            org.opencontainers.image.title=Exchange
+            org.opencontainers.image.url=
+            org.opencontainers.image.vendor=Open Horizon
+            org.opencontainers.image.version=${{ steps.exchange-version.outputs.version }}
           provenance: mode=max
           push: true
           sbom: true
