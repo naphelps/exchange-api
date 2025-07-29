@@ -220,7 +220,7 @@ jobs:
           # cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest
           # cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest,mode=max
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
-          attests: type=sbom,generator=image
+          #attests: type=sbom,generator=image
           cache-from: type=gha
           cache-to: type=gha,mode=max
           context: target/docker/stage
@@ -228,11 +228,11 @@ jobs:
           #org.opencontainers.image.authors=
           #org.opencontainers.image.ref.name=
           #org.opencontainers.image.url=
-          labels: ${{ steps.docker-metadata.outputs.labels }}
+          #labels: ${{ steps.docker-metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
-          provenance: mode=max
+          #provenance: mode=max
           push: true
-          sbom: true
+          #sbom: true
           tags: ghcr.io/naphelps/exchange-api:latest
 
       - name: ls
