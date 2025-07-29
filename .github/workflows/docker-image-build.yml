@@ -52,7 +52,7 @@ jobs:
             ~/.ivy2/cache
             ~/.sbt
             ~/.cache/coursier/cache
-          key: checkout-and-compile-dependencies-${{ hashFiles('**/build.sbt') }}
+          key: checkout-and-compile-dependency-${{ hashFiles('**/build.sbt') }}
           restore-keys: checkout-and-compile-dependency-
 
       - name: Configure Env Vars
@@ -146,6 +146,7 @@ jobs:
         run: |
           BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
           echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
+          echo $IMAGE_VERSION
           echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
 
       #- name: Setup Scala
@@ -161,6 +162,9 @@ jobs:
       # Docker buildx/buildkit for multi-platform builds
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          platform: linux/amd64,linux/arm64
 
       # Authenticate GHCR to allow pushing to our alternate image registry
       - name: Login to Github Container Registry
@@ -170,11 +174,37 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Image Creation Timestamp
+        run: |
+          echo "IMAGE_CREATION=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+          echo $IMAGE_CREATION
+
+      - name: Base Image Digest
+        continue-on-error: true
+        run: |
+          echo "BASE_IMAGE_DIGEST=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_ENV
+          echo $BASE_IMAGE_DIGEST
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           # cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest
           # cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest,mode=max
+          annotations: |
+            org.opencontainers.image.authors=
+            org.opencontainers.image.base.digest=${ BASE_IMAGE_DIGEST }
+            org.opencontainers.image.base.name=ubi10-minimal:latest
+            org.opencontainers.image.created=${ IMAGE_CREATION }
+            org.opencontainers.image.description=Open Horizon's Exchange Server and REST API
+            org.opencontainers.image.documentation=https://open-horizon.github.io/
+            org.opencontainers.image.licenses=Apache-2.0
+            org.opencontainers.image.ref.name=
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/open-horizon/exchange-api
+            org.opencontainers.image.title=Exchange
+            org.opencontainers.image.url=
+            org.opencontainers.image.vendor=Open Horizon
+            org.opencontainers.image.version=${ IMAGE_VERSION }
           cache-from: type=gha
           cache-to: type=gha,mode=max
           context: target/docker/stage
@@ -185,7 +215,3 @@ jobs:
       - name: ls
         continue-on-error: true
         run: ls -ahl
-
-      - name: ls ci
-        continue-on-error: true
-        run: ls -ahl c
