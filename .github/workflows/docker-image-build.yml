@@ -146,7 +146,7 @@ jobs:
       - name: Exchange Version
         id: exchange-version
         continue-on-error: true
-        run: echo "version=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_OUTPUT
+        run: echo "version=$(head -n 1 target/scala-*/classes/version.txt)-$BUILD_NUMBER" >> $GITHUB_OUTPUT
 
       #- name: Setup Scala
       #  uses: coursier/setup-action@v1
