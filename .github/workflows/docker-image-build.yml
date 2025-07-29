@@ -55,12 +55,6 @@ jobs:
           key: checkout-and-compile-dependency-${{ hashFiles('**/build.sbt') }}
           restore-keys: checkout-and-compile-dependency-
 
-      - name: Configure Env Vars
-        run: |
-          BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
-          echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
-          echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
-
       - name: Setup Scala
         uses: coursier/setup-action@v1
         with:
@@ -81,32 +75,32 @@ jobs:
         run: |
           sbt Docker/stage
 
-      - name: ls ~/
-        continue-on-error: true
-        run: |
-          ls -ahl ~
+      #- name: ls ~/
+      #  continue-on-error: true
+      #  run: |
+      #    ls -ahl ~
 
-      - name: ls
-        continue-on-error: true
-        run: |
-          pwd
-          ls -ahl
+      #- name: ls
+      #  continue-on-error: true
+      #  run: |
+      #    pwd
+      #    ls -ahl
 
-      - name: ls ./target
-        continue-on-error: true
-        run: ls -ah ./target
+      #- name: ls ./target
+      #  continue-on-error: true
+      #  run: ls -ah ./target
 
-      - name: ls ./target/scala-2.13
-        continue-on-error: true
-        run: ls -ah ./target/scala-2.13
+      #- name: ls ./target/scala-2.13
+      #  continue-on-error: true
+      #  run: ls -ah ./target/scala-2.13
 
-      - name: ls /home/runner
-        continue-on-error: true
-        run: ls -ah /home/runner
+      #- name: ls /home/runner
+      #  continue-on-error: true
+      #  run: ls -ah /home/runner
 
-      - name: ls /home/runner/.cache
-        continue-on-error: true
-        run: ls -ah /home/runner/.cache
+      #- name: ls /home/runner/.cache
+      #  continue-on-error: true
+      #  run: ls -ah /home/runner/.cache
 
       #- name: Upload Artifacts
       #  uses: actions/upload-artifact@v4
