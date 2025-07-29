@@ -176,16 +176,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Image Creation Timestamp
+        id: image-creation
         continue-on-error: true
         run: |
-          echo "IMAGE_CREATION=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
-          echo ${ IMAGE_CREATION }
+          date + '%Y-%m-%dT%H:%M:%S'
+          echo "creation=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Base Image Digest
+        id: base-img-digest
         continue-on-error: true
         run: |
-          echo "BASE_IMAGE_DIGEST=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_ENV
-          echo ${ BASE_IMAGE_DIGEST }
+          docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest
+          echo "digest=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
 
       - name: Build & Push Docker image
         uses: docker/build-push-action@v5
@@ -194,9 +196,9 @@ jobs:
           # cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest,mode=max
           annotations: |
             org.opencontainers.image.authors=
-            org.opencontainers.image.base.digest=${ BASE_IMAGE_DIGEST }
+            org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest }}
             org.opencontainers.image.base.name=ubi10-minimal:latest
-            org.opencontainers.image.created=${ IMAGE_CREATION }
+            org.opencontainers.image.created=${{ steps.image-creation.outputs.creation }}
             org.opencontainers.image.description=Open Horizon's Exchange Server and REST API
             org.opencontainers.image.documentation=https://open-horizon.github.io/
             org.opencontainers.image.licenses=Apache-2.0
@@ -206,12 +208,14 @@ jobs:
             org.opencontainers.image.title=Exchange
             org.opencontainers.image.url=
             org.opencontainers.image.vendor=Open Horizon
-            org.opencontainers.image.version=${ IMAGE_VERSION }
+            org.opencontainers.image.version=${IMAGE_VERSION}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           context: target/docker/stage
           file: target/docker/stage/Dockerfile
+          provenance: mode=max
           push: false
+          sbom: true
           tags: ghcr.io/naphelps/exchange-api:latest
 
       - name: ls
