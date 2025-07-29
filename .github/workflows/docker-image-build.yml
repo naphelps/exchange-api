@@ -22,9 +22,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ./*
-            !./.github
-            !./target
+            ~/work/*
+            !~/work/exchange-api/exchange-api/.github
+            !~/work/exchange-api/exchange-api/target
           key: checkout-and-compile-project-${{ github.sha }}
 
       - name: Cache GitHub Workflows
@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ./.github
+            ~/work/exchange-api/exchange-api/.github
           key: checkout-and-compile-workflow-${{ github.sha }}
 
       # On cache hit, nothing will need to be downloaded.
@@ -49,9 +49,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            /home/runner/.ivy2/cache
-            /home/runner/.sbt
-            /home/runner/.cache/coursier/cache
+            ~/.ivy2/cache
+            ~/.sbt
+            ~/.cache/coursier/cache
           key: checkout-and-compile-dependencies-${{ hashFiles('**/build.sbt') }}
           restore-keys: checkout-and-compile-dependency-
 
@@ -71,9 +71,8 @@ jobs:
         id: cache-deliverable
         uses: actions/cache@v4
         with:
-          path: ~/target
+          path: ~/work/exchange-api/exchange-api/target
           key: checkout-and-compile-deliverable-${{ github.sha }}
-          restore-keys: checkout-and-compile-deliverable-
 
       # On cache hit, project has already been compiled, packaged, and staged. Nothing to do.
       - name: Compile, Package, and Stage Dockerfile
@@ -124,7 +123,7 @@ jobs:
         id: cache-deliverable-restore
         uses: actions/cache/restore@v4
         with:
-          path: ./target
+          path: ~/work/exchange-api/exchange-api/target
           key: checkout-and-compile-deliverable-${{ github.sha }}
           fail-on-cache-miss: true
 
@@ -132,7 +131,7 @@ jobs:
         id: cache-workflow-restore
         uses: actions/cache/restore@v4
         with:
-          path: ./.github
+          path: ~/work/exchange-api/exchange-api/.github
           key: checkout-and-compile-workflow-${{ github.sha }}
 
       - name: Checkout Github Repo
