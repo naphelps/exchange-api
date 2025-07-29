@@ -17,12 +17,23 @@ jobs:
 
     steps:
       # Cache the entire project directory, Corsair dependency cache, and deliverables.
-      - name: Cache Project
-        id: cache
+      - name: Cache Project Directories and Files
+        id: cache-project
         uses: actions/cache@v4
         with:
-          path: ./*
-          key: checkout-and-compile-${{ runner.os }}-${{ github.sha }}
+          path: |
+            ~/*
+            !~/.github
+            !~/target
+          key: checkout-and-compile-project-${{ github.sha }}
+
+      - name: Cache GitHub Workflows
+        id: cache-workflow
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.github
+          key: checkout-and-compile-workflow-${{ github.sha }}
 
       # On cache hit, nothing will need to be downloaded.
       # By not downloading and overwriting our project directories anf files, SBT will need to not rebuild.
@@ -33,16 +44,16 @@ jobs:
         with:
           clean: false
 
-      - name: Cache Dependencies
-        id: cache-dependencies
+      - name: Cache Dependency Directories and Files
+        id: cache-dependency
         uses: actions/cache@v4
         with:
           path: |
             /home/runner/.ivy2/cache
             /home/runner/.sbt
-            /home/runner/.cache/coursier/*
-          key: checkout-and-compile-dependencies-${{ runner.os }}-${{ hashFiles('**/build.sbt') }}
-          restore-keys: checkout-and-compile-dependencies-${{ runner.os }}-
+            /home/runner/.cache/coursier/cache
+          key: checkout-and-compile-dependencies-${{ hashFiles('**/build.sbt') }}
+          restore-keys: checkout-and-compile-dependency-
 
       - name: Configure Env Vars
         run: |
@@ -55,6 +66,14 @@ jobs:
         with:
           apps: sbt
           jvm: temurin:1.21
+
+      - name: Cache Build Deliverables
+        id: cache-deliverable
+        uses: actions/cache@v4
+        with:
+          path: ~/target
+          key: checkout-and-compile-deliverable-${{ github.sha }}
+          restore-keys: checkout-and-compile-deliverable-
 
       # On cache hit, project has already been compiled, packaged, and staged. Nothing to do.
       - name: Compile, Package, and Stage Dockerfile
@@ -94,19 +113,23 @@ jobs:
     runs-on: ubuntu-latest
     needs: [something]
     steps:
-      - name: Restore Checkout & Compile
-        id: cache-restore
-        uses: actions/cache@v4
+      - name: Restore Checkout & Compile Deliverables
+        id: cache-deliverable-restore
+        uses: actions/cache/restore@v4
         with:
-          path: ./*
-          key: checkout-and-compile-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            checkout-and-compile-${{ runner.os }}-${{ github.sha }}
-            -${{ github.sha }}
+          path: ~/target
+          key: checkout-and-compile-deliverable-${{ github.sha }}
           fail-on-cache-miss: true
 
+      - name: Restore Checkout & Compile Deliverables
+        id: cache-workflow-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.github
+          key: checkout-and-compile-workflow-${{ github.sha }}
+
       - name: Checkout Github Repo
-        #if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           clean: false
@@ -119,11 +142,11 @@ jobs:
           echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
           echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
 
-      - name: Setup Scala
-        uses: coursier/setup-action@v1
-        with:
-          apps: sbt
-          jvm: temurin:1.21
+      #- name: Setup Scala
+      #  uses: coursier/setup-action@v1
+      #  with:
+      #    apps: sbt
+      #    jvm: temurin:1.21
 
       # QEMU for software emulation of multiple platforms
       - name: Setup QEMU
