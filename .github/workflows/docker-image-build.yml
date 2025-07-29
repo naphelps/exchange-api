@@ -38,7 +38,7 @@ jobs:
       # On cache hit, nothing will need to be downloaded.
       # By not downloading and overwriting our project directories anf files, SBT will need to not rebuild.
       # Based on directory and file system change timestamps.
-      - name: Checkout Github Repo
+      - name: Checkout Github Repository
         #if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
@@ -127,14 +127,14 @@ jobs:
           key: checkout-and-compile-deliverable-${{ github.sha }}
           fail-on-cache-miss: true
 
-      - name: Restore Checkout & Compile Deliverables
+      - name: Restore Checkout & Compile Workflows
         id: cache-workflow-restore
         uses: actions/cache/restore@v4
         with:
           path: ~/work/exchange-api/exchange-api/.github
           key: checkout-and-compile-workflow-${{ github.sha }}
 
-      - name: Checkout Github Repo
+      - name: Checkout Github Repository
         if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
@@ -142,7 +142,7 @@ jobs:
 
       #- uses: ./.github/workflows/gh-workflow.yml
 
-      - name: Configure Env Vars
+      - name: Configure Environment Variables
         run: |
           BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
           echo "IMAGE_VERSION=$(head -n 1 src/main/resources/version.txt)-$BUILD_NUMBER" >> $GITHUB_ENV
@@ -160,11 +160,12 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       # Docker buildx/buildkit for multi-platform builds
+      #  "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/arm64,linux/riscv64,linux/ppc64le,linux/s390x,linux/386,linux/mips64le,linux/mips64,linux/loong64,linux/arm/v7,linux/arm/v6"
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           install: true
-          platform: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64
 
       # Authenticate GHCR to allow pushing to our alternate image registry
       - name: Login to Github Container Registry
@@ -175,17 +176,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Image Creation Timestamp
+        continue-on-error: true
         run: |
           echo "IMAGE_CREATION=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
-          echo $IMAGE_CREATION
+          echo ${ IMAGE_CREATION }
 
       - name: Base Image Digest
         continue-on-error: true
         run: |
           echo "BASE_IMAGE_DIGEST=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_ENV
-          echo $BASE_IMAGE_DIGEST
+          echo ${ BASE_IMAGE_DIGEST }
 
-      - name: Build and push Docker image
+      - name: Build & Push Docker image
         uses: docker/build-push-action@v5
         with:
           # cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest
