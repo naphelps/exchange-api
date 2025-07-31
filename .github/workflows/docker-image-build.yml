@@ -217,13 +217,13 @@ jobs:
           images:
             ghcr.io/naphelps/exchange
           tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=schedule,pattern={{version}}
+            type=schedule,pattern=nightly
+            type=schedule,pattern=test
+            type=ref,event=workflow_dispatch,value=testing
             type=semver,pattern={{major}}
-            type=sha
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}}
 
       - name: Build & Push Docker image
         uses: docker/build-push-action@v5
@@ -243,7 +243,6 @@ jobs:
           #org.opencontainers.image.ref.name=
           #org.opencontainers.image.url=
           # labels: ${{ steps.docker-metadata.outputs.labels }}
-          labels: something.somerandomlabel=RANDOM
           platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
           #provenance: mode=max
           push: true
