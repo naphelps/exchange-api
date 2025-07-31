@@ -214,21 +214,12 @@ jobs:
             org.opencontainers.image.title=Exchange
             org.opencontainers.image.vendor=Open Horizon
             org.opencontainers.image.version=${{ steps.exchange-version.outputs.version }}
-          images:
-            ghcr.io/naphelps/exchange
-          tags: |
-            type=schedule,pattern={{version}}
-            type=schedule,pattern=nightly
-            type=schedule,pattern=test
-            type=semver,pattern={{major}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{version}}
 
       - name: Build & Push Docker image
         uses: docker/build-push-action@v5
         with:
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
-          #attests: type=sbom,generator=image
+          attests: type=sbom,generator=image
           build-args: |
             BASE_IMAGE_DIGEST=${{ steps.base-img-digest.outputs.digest }}
             IMAGE_CREATION_TIMESTAMP=${{ steps.image-creation.outputs.creation }}
@@ -243,7 +234,7 @@ jobs:
           #org.opencontainers.image.url=
           # labels: ${{ steps.docker-metadata.outputs.labels }}
           platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
-          #provenance: mode=max
+          provenance: mode=max
           push: true
-          #sbom: true
-          tags: ${{ steps.docker-metadata.outputs.tags }}
+          sbom: true
+          tags: ghcr.io/naphelps/exchange:testing
