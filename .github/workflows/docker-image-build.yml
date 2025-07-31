@@ -249,7 +249,7 @@ jobs:
           #provenance: mode=max
           push: true
           #sbom: true
-          tags: ghcr.io/naphelps/exchange-api:latest
+          tags: ghcr.io/naphelps/exchange:latest
 
       - name: ls
         continue-on-error: true
