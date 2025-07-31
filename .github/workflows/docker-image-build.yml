@@ -230,7 +230,7 @@ jobs:
         with:
           # cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest
           # cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest,mode=max
-          #annotations: ${{ steps.docker-metadata.outputs.annotations }}
+          annotations: ${{ steps.docker-metadata.outputs.annotations }}
           #attests: type=sbom,generator=image
           build-args: |
             BASE_IMAGE_DIGEST=${{ steps.base-img-digest.outputs.digest }}
