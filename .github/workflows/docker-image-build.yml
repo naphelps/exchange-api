@@ -185,22 +185,22 @@ jobs:
         run: echo "digest=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
 
 
-      - name: Docker Metadata
-        id: docker-metadata
-        uses: docker/metadata-action@v5
-        with:
-          annotations: |
-            org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest }}
-            org.opencontainers.image.base.name=ubi10-minimal:latest
-            org.opencontainers.image.created=${{ steps.image-creation.outputs.creation }}
-            org.opencontainers.image.description=Open Horizon's Exchange Server and REST API
-            org.opencontainers.image.documentation=https://open-horizon.github.io/
-            org.opencontainers.image.licenses=Apache-2.0
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=https://github.com/open-horizon/exchange-api
-            org.opencontainers.image.title=Exchange
-            org.opencontainers.image.vendor=Open Horizon
-            org.opencontainers.image.version=${{ steps.exchange-version.outputs.version }}
+      #- name: Docker Metadata
+      #  id: docker-metadata
+      #  uses: docker/metadata-action@v5
+      #  with:
+      #    annotations: |
+      #      org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest }}
+      #      org.opencontainers.image.base.name=ubi10-minimal:latest
+      #      org.opencontainers.image.created=${{ steps.image-creation.outputs.creation }}
+      #      org.opencontainers.image.description=Open Horizon's Exchange Server and REST API
+      #      org.opencontainers.image.documentation=https://open-horizon.github.io/
+      #      org.opencontainers.image.licenses=Apache-2.0
+      #      org.opencontainers.image.revision=${{ github.sha }}
+      #      org.opencontainers.image.source=https://github.com/open-horizon/exchange-api
+      #      org.opencontainers.image.title=Exchange
+      #      org.opencontainers.image.vendor=Open Horizon
+      #      org.opencontainers.image.version=${{ steps.exchange-version.outputs.version }}
           #labels: |
           #  org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest }}
           #  org.opencontainers.image.base.name=ubi10-minimal:latest
@@ -219,8 +219,13 @@ jobs:
         with:
           # cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest
           # cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/exchange-api:latest,mode=max
-          annotations: ${{ steps.docker-metadata.outputs.annotations }}
+          #annotations: ${{ steps.docker-metadata.outputs.annotations }}
           #attests: type=sbom,generator=image
+          build-args: |
+            BASE_IMAGE_DIGEST=${{ steps.base-img-digest.outputs.digest }}
+            IMAGE_CREATION_TIMESTAMP=${{ steps.image-creation.outputs.creation }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_VERSION=${{ steps.exchange-version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           context: target/docker/stage
