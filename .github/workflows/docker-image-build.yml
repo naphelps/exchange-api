@@ -237,4 +237,4 @@ jobs:
           provenance: mode=max
           push: true
           sbom: true
-          tags: ghcr.io/naphelps/exchange:testing
+          tags: ghcr.io/naphelps/exchange-ubi:testing
