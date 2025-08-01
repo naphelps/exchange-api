@@ -121,7 +121,7 @@ jobs:
       BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || '${BASE_IMAGE_REGISTERY}/${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG}' }}
 
       IMAGE_AUTHORS:        ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
-      IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon\'s Exchange Server and REST API' }}
+      IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizons Exchange Server and REST API' }}
       IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
       IMAGE_LICENSES:       ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
       IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || 'https://github.com/open-horizon/exchange-api' }}
