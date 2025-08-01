@@ -63,7 +63,7 @@ EXCHANGE_TRUST_DUR ?= 1
 EXCHANGE_TRUST_PW ?=
 # Use this to pass args to the exchange svr JVM by overriding JAVA_OPTS in your environment
 JAVA_OPTS ?=#-Xmx1G
-POSTGRES_CONTAINER_ADDRESS ?= postgres#$(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(POSTGRES_CONTAINER_NAME))
+POSTGRES_CONTAINER_ADDRESS ?= $(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(POSTGRES_CONTAINER_NAME))
 POSTGRES_CONTAINER_NAME ?= postgres
 POSTGRES_DB_NAME ?= exchange
 EXCHANGE_DB_NAME ?= $(POSTGRES_DB_NAME)
