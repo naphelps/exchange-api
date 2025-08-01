@@ -119,7 +119,6 @@ jobs:
       BASE_IMAGE_TAG:       ${{ vars.BASE_IMAGE_TAG || 'latest' }}
       BASE_IMAGE_REGISTERY: ${{ vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' }}
       SOMETHING2: ${{ jobs.something2.env.RED_HAT_VERSION }}
-      SOMETHING3: 'ubi'${{ jobs.something2.env.RED_HAT_VERSION }}
       BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || format('{0}/{1}:{2}', vars.BASE_IMAGE_REGISTERY, vars.BASE_IMAGE_NAME, vars.BASE_IMAGE_TAG) }}
 
       IMAGE_AUTHORS:        ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
