@@ -120,8 +120,7 @@ jobs:
       BASE_IMAGE_REGISTERY: ${{ vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' }}
       SOMETHING2: ${{ format('{0}', inputs.RED_HAT_VERSION) }}
       SOMETHING3: ${{ '$RED_HAT_VERSION' }}
-      BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || format('{0}/{1}:{2}', vars.BASE_IMAGE_REGISTERY, vars.BASE_IMAGE_NAME, vars.BASE_IMAGE_TAG) }}
-
+      BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' ), (vars.BASE_IMAGE_NAME || format('ubi{0}', (vars.RED_HAT_VERSION || '10'))), (vars.BASE_IMAGE_TAG || 'latest')) }}
       IMAGE_AUTHORS:        ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
       IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
       IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
