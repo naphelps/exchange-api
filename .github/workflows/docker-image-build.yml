@@ -115,10 +115,10 @@ jobs:
     env:
       RED_HAT_VERSION:      ${{ vars.RED_HAT_VERSION || '10' }}
       RED_HAT_UBI_TYPE:     ${{ vars.RED_HAT_UBI_TYPE  || 'minimal' }}
-      BASE_IMAGE_NAME:      ${{ vars.BASE_IMAGE_NAME || 'ubi'${RED_HAT_VERSION}'-'${RED_HAT_UBI_TYPE} }}
+      BASE_IMAGE_NAME:      ${{ vars.BASE_IMAGE_NAME || 'ubi' env.RED_HAT_VERSION '-' env.RED_HAT_UBI_TYPE }}
       BASE_IMAGE_TAG:       ${{ vars.BASE_IMAGE_TAG || 'latest' }}
       BASE_IMAGE_REGISTERY: ${{ vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' }}
-      BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || ${BASE_IMAGE_REGISTERY}'/'${BASE_IMAGE_NAME}':'${BASE_IMAGE_TAG} }}
+      BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || env.BASE_IMAGE_REGISTERY '/' env.BASE_IMAGE_NAME ':' env.BASE_IMAGE_TAG }}
 
       IMAGE_AUTHORS:        ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
       IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon'''s Exchange Server and REST API' }}
