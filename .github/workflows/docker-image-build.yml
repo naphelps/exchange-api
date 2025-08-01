@@ -115,17 +115,15 @@ jobs:
     env:
       RED_HAT_VERSION:      ${{ vars.RED_HAT_VERSION || '10' }}
       RED_HAT_UBI_TYPE:     ${{ vars.RED_HAT_UBI_TYPE  || 'minimal' }}
-      BASE_IMAGE_NAME:      ${{ vars.BASE_IMAGE_NAME || '$RED_HAT_VERSION' }}
+      BASE_IMAGE_NAME:      ${{ vars.BASE_IMAGE_NAME || format('ubi{0}-{1}', (vars.RED_HAT_VERSION || '10'), (vars.RED_HAT_UBI_TYPE || 'minimal'))) }}
       BASE_IMAGE_TAG:       ${{ vars.BASE_IMAGE_TAG || 'latest' }}
       BASE_IMAGE_REGISTERY: ${{ vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' }}
-      SOMETHING2: ${{ format('{0}', inputs.RED_HAT_VERSION) }}
-      SOMETHING3: ${{ '$RED_HAT_VERSION' }}
-      BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' ), (vars.BASE_IMAGE_NAME || format('ubi{0}', (vars.RED_HAT_VERSION || '10'))), (vars.BASE_IMAGE_TAG || 'latest')) }}
+      BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' ), (vars.BASE_IMAGE_NAME || format('ubi{0}-{1}', (vars.RED_HAT_VERSION || '10'), (vars.RED_HAT_UBI_TYPE || 'minimal'))), (vars.BASE_IMAGE_TAG || 'latest')) }}
       IMAGE_AUTHORS:        ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
       IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
       IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
       IMAGE_LICENSES:       ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
-      IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || 'https://github.com/open-horizon/exchange-api' }}
+      IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || format('{0}/{1}', github.GITHUB_SERVER_URL, github.GITHUB_REPOSITORY) }}
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
 
@@ -175,13 +173,28 @@ jobs:
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
 
+      - name: Set Up Docker
+        uses: docker/setup-docker-action@v4
+        with:
+          daemon-config: |
+            {
+              "debug": true,
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
       # Docker buildx/buildkit for multi-platform builds
       #  "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/arm64,linux/riscv64,linux/ppc64le,linux/s390x,linux/386,linux/mips64le,linux/mips64,linux/loong64,linux/arm/v7,linux/arm/v6"
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           install: true
-          platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/ppc64le
+            linux/s390x
 
       # Authenticate GHCR to allow pushing to our alternate image registry
       - name: Login to Github Container Registry
@@ -200,17 +213,6 @@ jobs:
         id: base-img-digest
         continue-on-error: true
         run: echo "digest=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
-
-      - name: Set Up Docker
-        uses: docker/setup-docker-action@v4
-        with:
-          daemon-config: |
-            {
-              "debug": true,
-              "features": {
-                "containerd-snapshotter": true
-              }
-            }
 
       - name: Docker Metadata
         id: docker-metadata
@@ -252,8 +254,14 @@ jobs:
           #org.opencontainers.image.ref.name=
           #org.opencontainers.image.url=
           # labels: ${{ steps.docker-metadata.outputs.labels }}
-          platforms: linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
+          platforms: |
+            linux/amd64
+            linux/arm64
+            linux/ppc64le
+            linux/s390x
           provenance: mode=max
           push: true
           sbom: true
-          tags: ghcr.io/naphelps/exchange-ubi:testing
+          tags: |
+            ghcr.io/naphelps/exchange-ubi:testing
+            ghcr.io/naphelps/exchange-ubi:${{ steps.exchange-version.outputs.version }}-testing
