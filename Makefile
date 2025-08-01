@@ -63,7 +63,7 @@ EXCHANGE_TRUST_DUR ?= 1
 EXCHANGE_TRUST_PW ?=
 # Use this to pass args to the exchange svr JVM by overriding JAVA_OPTS in your environment
 JAVA_OPTS ?=#-Xmx1G
-POSTGRES_CONTAINER_ADDRESS ?= $(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(POSTGRES_CONTAINER_NAME))
+POSTGRES_CONTAINER_ADDRESS ?= postgres#$(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(POSTGRES_CONTAINER_NAME))
 POSTGRES_CONTAINER_NAME ?= postgres
 POSTGRES_DB_NAME ?= exchange
 EXCHANGE_DB_NAME ?= $(POSTGRES_DB_NAME)
@@ -155,6 +155,22 @@ truststore-postgres: /postgres.crt
 
 ## Start a PostreSQL database container with HTTPS
 ## -c ssl_ciphers=TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256 cannot control accepted ciphers with tls v1.3
+target/docker/.run-docker-db-postgres-http: target/docker/.docker-network
+	docker run \
+      -d \
+      -e POSTGRES_HOST_AUTH_METHOD=trust \
+      -e POSTGRES_DB=$(POSTGRES_DB_NAME) \
+      -e POSTGRES_USER=$(POSTGRES_DB_USER) \
+      --network $(DOCKER_NETWORK) \
+      --name $(POSTGRES_CONTAINER_NAME) \
+      postgres
+	@touch $@
+
+.PHONY: run-docker-db-postgres-http
+run-docker-db-postgres-http: target/docker/.run-docker-db-postgres-http
+
+## Start a PostreSQL database container with HTTPS
+## -c ssl_ciphers=TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256 cannot control accepted ciphers with tls v1.3
 target/docker/.run-docker-db-postgres-https: target/docker/.docker-network /postgres.crt
 	docker run \
       -d \
@@ -209,7 +225,7 @@ truststore: /etc/horizon/exchange/localhost.p12
 #-e EXCHANGE_DB_HOST=$(POSTGRES_CONTAINER_ADDRESS) \
 #-e EXCHANGE_DB_NAME=$(POSTGRES_DB_NAME) \
 #-e EXCHANGE_DB_USER=$(POSTGRES_DB_USER)
-target/docker/.run-docker: target/docker/.docker-network
+target/docker/.run-docker: target/docker/.run-docker-db-postgres-http
 	docker run \
       --name $(DOCKER_NAME) \
       --network $(DOCKER_NETWORK) \
@@ -324,7 +340,7 @@ clean-docker:
 	docker rm -f $(DOCKER_NAME) 2> /dev/null || :
 	docker rm -f $(POSTGRES_CONTAINER_NAME) 2> /dev/null || :
 	docker network remove $(DOCKER_NETWORK) 2> /dev/null || :
-	rm -f target/docker/.docker-network target/docker/.run-docker target/docker/.run-docker-db-postgres-https target/docker/.run-docker-icp target/docker/.run-docker-icp-https
+	rm -f target/docker/.docker-network target/docker/.run-docker target/docker/.run-docker-db-postgres-http target/docker/.run-docker-db-postgres-https target/docker/.run-docker-icp target/docker/.run-docker-icp-https
 	sudo rm -fr /postgres.crt /postgres.key target/postgres.crt target/postgres.key
 
 .PHONY: cleaner-docker
