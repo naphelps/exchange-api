@@ -55,8 +55,8 @@ EXCHANGE_HOST_POSTGRES_CERT_FILE ?= $(EXCHANGE_HOST_CONFIG_DIR)/postres-cert/roo
 EXCHANGE_HOST_TRUST_DIR ?= $(PROJECT_DIRECTORY)/target/etc/horizon/exchange/truststore
 EXCHANGE_ICP_CERT_FILE ?= /etc/horizon/exchange/icp/ca.crt
 # Set to "DEBUG" to turn on debugging
-EXCHANGE_LOG_LEVEL ?= DEBUG#INFO
-EXCHANGE_PEKKO_LOG_LEVEL ?= $(EXCHANGE_LOG_LEVEL)
+EXCHANGE_LOG_LEVEL ?= DEBUG
+EXCHANGE_PEKKO_LOGLEVEL ?= $(EXCHANGE_LOG_LEVEL)
 EXCHANGE_ROOT_PW ?=
 # Number of days the SSL certificate is valid for
 EXCHANGE_TRUST_DUR ?= 1
