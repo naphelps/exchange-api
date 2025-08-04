@@ -151,7 +151,7 @@ jobs:
       IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
       IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
       IMAGE_LICENSES:       ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
-      IMAGE_PLATFORMS:      ${{ vars.IMAGE_PLATFORMS || linux/amd64,linux/arm64,linux/ppc64le,linux/s390x }}
+      IMAGE_PLATFORMS:      ${{ vars.IMAGE_PLATFORMS || 'linux/amd64,linux/arm64,linux/ppc64le,linux/s390x' }}
       IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || github.repositoryUrl }}
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
