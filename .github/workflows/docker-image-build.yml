@@ -237,6 +237,7 @@ jobs:
         run: |
           echo "creation-iso8601=$(date --iso-8601=ns)" >> $GITHUB_OUTPUT
           echo "creation-rfc3339=$(date --rfc-3339=ns)" >> $GITHUB_OUTPUT
+          echo "creation-prerelease-tag=$(date +%Y%m%dT%T.%9N.%Z | sed -E 's|:|.|g')" >> $GITHUB_OUTPUT
 
       - name: Base Image Digest
         id: base-img-digest
@@ -274,7 +275,7 @@ jobs:
           REGISTRY_QUAY_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-quay-enabled }}
           TAG_LATEST_ENABLE: ${{ github.event_name == 'push' && 'false' || inputs.tag-latest-enabled }}
           TAG_SYNTAX: '{0}/{1}/{2}:{3}{4}'
-          TAG_TEST_SUFFIX: ${{ (github.event_name == 'push' && 'true' || inputs.tag-test-enabled) && format('-testing-{0}', steps.image-creation.outputs.creation-iso8601) || '' }}
+          TAG_TEST_SUFFIX: ${{ (github.event_name == 'push' && 'true' || inputs.tag-test-enabled) && format('-testing-{0}', steps.image-creation.outputs.creation-prerelease-tag) || '' }}
           TAG_TESTING_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.tag-test-enabled }}
         uses: docker/build-push-action@v5
         with:
