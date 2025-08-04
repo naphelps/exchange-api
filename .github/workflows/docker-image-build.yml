@@ -238,7 +238,9 @@ jobs:
       - name: Image Creation Timestamp
         id: image-creation
         continue-on-error: true
-        run: echo "creation=$(date --rfc-3339=ns)" >> $GITHUB_OUTPUT
+        run: |
+          echo "creation-iso8601=$(date --iso-8601=ns)" >> $GITHUB_OUTPUT
+          echo "creation-rfc3339=$(date --rfc-3339=ns)" >> $GITHUB_OUTPUT
 
       - name: Base Image Digest
         id: base-img-digest
@@ -254,7 +256,7 @@ jobs:
             org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
             org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest }}
             org.opencontainers.image.base.name=${{ env.BASE_IMAGE_FROM }}
-            org.opencontainers.image.created=${{ steps.image-creation.outputs.creation }}
+            org.opencontainers.image.created=${{ steps.image-creation.outputs.creation-rfc3339 }}
             org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
             org.opencontainers.image.documentation=${{ env.IMAGE_DOCUMENTATION }}
             org.opencontainers.image.licenses=${{ env.IMAGE_LICENSES }}
@@ -274,6 +276,7 @@ jobs:
           REGISTRY_QUAY_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-quay-enabled }}
           TAG_LATEST_ENABLE: ${{ github.event_name == 'push' && 'false' || inputs.tag-latest-enabled }}
           TAG_TESTING_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.tag-test-enabled }}
+          TAG_TEST_SUFFIX: ${{ env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation-iso8601) || '' }}
         uses: docker/build-push-action@v5
         with:
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
@@ -300,7 +303,8 @@ jobs:
           push: true
           sbom: true
           tags: |
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && 'ghcr.io/naphelps/exchange-ubi:testing' || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version-major, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version-less-patch, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_LATEST_ENABLE == 'true') && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', 'latest', env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_TESTING_ENABLE == 'true') && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', 'testing', env.TAG_TEST_SUFFIX) || '' }}
