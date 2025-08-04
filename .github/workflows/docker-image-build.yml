@@ -271,12 +271,15 @@ jobs:
 
       - name: Build & Push Docker image
         env:
+          DOMAIN_GHCR: ghcr.io
+          DOMAIN_QUAY: quay.io
           REGISTRY_DOCKERHUB_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-dockerhub-enabled }}
           REGISTRY_GHCR_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-ghcr-enabled }}
           REGISTRY_QUAY_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-quay-enabled }}
           TAG_LATEST_ENABLE: ${{ github.event_name == 'push' && 'false' || inputs.tag-latest-enabled }}
+          TAG_SYNTAX: '{0}/{1}/{2}:{3}{4}'
+          TAG_TEST_SUFFIX: ${{ (github.event_name == 'push' && 'true' || inputs.tag-test-enabled) == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation-iso8601) || '' }}
           TAG_TESTING_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.tag-test-enabled }}
-          TAG_TEST_SUFFIX: ${{ env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation-iso8601) || '' }}
         uses: docker/build-push-action@v5
         with:
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
@@ -303,8 +306,8 @@ jobs:
           push: true
           sbom: true
           tags: |
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_LATEST_ENABLE == 'true') && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', 'latest', env.TAG_TEST_SUFFIX) || '' }}
-            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_TESTING_ENABLE == 'true') && format('{0}/{1}/{2}:{3}{4}', 'ghcr.io', github.repository_owner, 'exchange-ubi', 'testing', env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, 'exchange-ubi', steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, 'exchange-ubi', 'latest', env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, 'exchange-ubi', 'testing', env.TAG_TEST_SUFFIX) || '' }}
