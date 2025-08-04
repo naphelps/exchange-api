@@ -189,7 +189,10 @@ jobs:
       - name: Exchange Version
         id: exchange-version
         continue-on-error: true
-        run: echo "version=$(head -n 1 target/scala-*/classes/version.txt)" >> $GITHUB_OUTPUT
+        run: |
+          echo "version=$(head -n 1 target/scala-*/classes/version.txt)" >> $GITHUB_OUTPUT
+          echo "version-major=$(grep -Eo '^[[:digit:]]+' target/scala-*/classes/version.txt)" >> $GITHUB_OUTPUT
+          echo "version-less-patch=$(grep -Eo '^[[:digit:]]+\.[[:digit:]]+' target/scala-*/classes/version.txt)" >> $GITHUB_OUTPUT
 
       #- name: Setup Scala
       #  uses: coursier/setup-action@v1
@@ -295,4 +298,6 @@ jobs:
           sbom: true
           tags: |
             ${{ env.TAG_TESTING_ENABLE == 'true' && 'ghcr.io/naphelps/exchange-ubi:testing' || '' }}
-            ${{ env.TAG_TESTING_ENABLE != 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}-testing-{1}', steps.exchange-version.outputs.version, steps.image-creation.outputs.creation) || '' }}
+            ${{ env.TAG_TESTING_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}, steps.exchange-version.outputs.version-major, (env.TAG_TESTING_ENABLE != 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
+            ${{ env.TAG_TESTING_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}, steps.exchange-version.outputs.version-less-patch, (env.TAG_TESTING_ENABLE != 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
+            ${{ env.TAG_TESTING_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}, steps.exchange-version.outputs.version, (env.TAG_TESTING_ENABLE != 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
