@@ -168,7 +168,7 @@ trait Changes extends JacksonSupport with AuthenticationSupport{
           case (Some(""), _) => None  // Empty timestamp
           case (None, _) => None      // Empty timestamp
           case (_, Some(_)) => None   // Some(ChangeId), take over timestamp
-          case (_, None) => Option(java.sql.Timestamp.from(ZonedDateTime.parse(reqBody.lastUpdated.get).toInstant.minusMillis(50)))  // Some(timestamp).  // Roll back time to catch any records that were added after we last queried. Timestamp only.
+          case (_, None) => Option(java.sql.Timestamp.from(ZonedDateTime.parse(reqBody.lastUpdated.get).toInstant.minusMillis(10000)))  // Some(timestamp).  // Roll back time to catch any records that were added after we last queried. Timestamp only.
         }
       logger.debug(s"POST /orgs/${organization}/changes - ${identity.resource}:${identity.role}(${identity.identifier.getOrElse("")})(${identity.owner.getOrElse("")}) - timestamp to search:             $reqLastUpdate")
       
