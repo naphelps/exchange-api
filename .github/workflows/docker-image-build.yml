@@ -3,6 +3,34 @@ name: Build Container Images
 on:
   workflow_call:
   workflow_dispatch:
+    inputs:
+      registry-dockerhub-enabled:
+        type: boolean
+        description: "Enable container registry DockerHub?"
+        default: true
+      registry-ghcr-enabled:
+        type: boolean
+        description: "Enable container registry GitHub Container Registry (GHCR)?"
+        default:
+      registry-quay-enabled:
+        type: boolean
+        description: "Enable container registry Quay?"
+        default: true
+      tag-latest-enabled:
+        type: boolean
+        description: "Enable latest tag on current build?"
+        default: false
+      tag-test-enabled:
+        type: boolean
+        description: "Enable test tag on current build?"
+        default: true
+  push:
+    branches:
+      - master
+      - v2.124
+      - v2.122
+      - v2.110
+      - v2.87
 
 env:
   IMAGE_REPO: ${{ vars.DOCKERHUB_REPO }}
@@ -123,7 +151,7 @@ jobs:
       IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
       IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
       IMAGE_LICENSES:       ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
-      IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || format('{0}/{1}', github.GITHUB_SERVER_URL, github.GITHUB_REPOSITORY) }}
+      IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || github.repositoryUrl }}
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
 
@@ -237,6 +265,9 @@ jobs:
             ${{ vars.ANNOTATIONS || env.DEFAULT_ANNOTATIONS }}
 
       - name: Build & Push Docker image
+        env:
+          TAG_LATEST_ENABLE: ${{ github.event_name == 'push' && 'false' || inputs.tag-latest-enabled}}
+          TAG_TESTING_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.tag-test-enabled}}
         uses: docker/build-push-action@v5
         with:
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
@@ -263,5 +294,5 @@ jobs:
           push: true
           sbom: true
           tags: |
-            ghcr.io/naphelps/exchange-ubi:testing
-            ghcr.io/naphelps/exchange-ubi:${{ steps.exchange-version.outputs.version }}-testing
+            ${{ env.TAG_TESTING_ENABLE == true && 'ghcr.io/naphelps/exchange-ubi:testing' || '' }}
+            ${{ env.TAG_TESTING_ENABLE != true && ghcr.io/naphelps/exchange-ubi:${{ steps.exchange-version.outputs.version }}-testing || '' }}
