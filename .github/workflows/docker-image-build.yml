@@ -295,4 +295,4 @@ jobs:
           sbom: true
           tags: |
             ${{ env.TAG_TESTING_ENABLE == true && 'ghcr.io/naphelps/exchange-ubi:testing' || '' }}
-            ${{ env.TAG_TESTING_ENABLE != true && format('ghcr.io/naphelps/exchange-ubi:{0}-testing', ${{ steps.exchange-version.outputs.version }}) || '' }}
+            ${{ env.TAG_TESTING_ENABLE != true && format('ghcr.io/naphelps/exchange-ubi:{0}-testing', steps.exchange-version.outputs.version) || '' }}
