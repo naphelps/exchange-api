@@ -269,8 +269,11 @@ jobs:
 
       - name: Build & Push Docker image
         env:
-          TAG_LATEST_ENABLE: ${{ github.event_name == 'push' && 'false' || inputs.tag-latest-enabled}}
-          TAG_TESTING_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.tag-test-enabled}}
+          REGISTRY_DOCKERHUB_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-dockerhub-enabled }}
+          REGISTRY_GHCR_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-ghcr-enabled }}
+          REGISTRY_QUAY_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-quay-enabled }}
+          TAG_LATEST_ENABLE: ${{ github.event_name == 'push' && 'false' || inputs.tag-latest-enabled }}
+          TAG_TESTING_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.tag-test-enabled }}
         uses: docker/build-push-action@v5
         with:
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
@@ -297,7 +300,7 @@ jobs:
           push: true
           sbom: true
           tags: |
-            ${{ env.TAG_TESTING_ENABLE == 'true' && 'ghcr.io/naphelps/exchange-ubi:testing' || '' }}
-            ${{ env.TAG_TESTING_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version-major, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
-            ${{ env.TAG_TESTING_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version-less-patch, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
-            ${{ env.TAG_TESTING_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && 'ghcr.io/naphelps/exchange-ubi:testing' || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version-major, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version-less-patch, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format('ghcr.io/naphelps/exchange-ubi:{0}{1}', steps.exchange-version.outputs.version, (env.TAG_TESTING_ENABLE == 'true' && format('-testing-{0}', steps.image-creation.outputs.creation) || '')) || '' }}
