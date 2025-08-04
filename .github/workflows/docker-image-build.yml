@@ -268,6 +268,7 @@ jobs:
 
       - name: Build & Push Docker image
         env:
+          DOMAIN_DOCKERHUB: docker.io
           DOMAIN_GHCR: ghcr.io
           DOMAIN_QUAY: quay.io
           IMAGE_NAME: ${{ vars.IMAGE_NAME || 'exchange-ubi' }}
@@ -300,18 +301,18 @@ jobs:
           push: true
           sbom: true
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
-            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
+            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
+            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
             ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
             ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
             ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
             ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
             ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
-            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
-            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
+            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
+            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
