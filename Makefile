@@ -5,7 +5,7 @@ SHELL = /bin/bash -e
 # Some of these vars are also used by the Dockerfiles
 ARCH ?= amd64
 COMPILE_CLEAN ?= clean
-DOCKER_NAME ?= amd64_exchange-api
+DOCKER_NAME ?= exchange
 DOCKER_NETWORK ?= exchange-api-network
 DOCKER_REGISTRY ?= openhorizon
 VERSION ?= $(shell cat src/main/resources/version.txt)
