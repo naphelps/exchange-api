@@ -158,6 +158,8 @@ truststore-postgres: /postgres.crt
 target/docker/.run-docker-db-postgres-http: target/docker/.docker-network
 	docker run \
       -d \
+      -e TZ="GMT" \
+      -e PTZ="GMT" \
       -e POSTGRES_HOST_AUTH_METHOD=trust \
       -e POSTGRES_DB=$(POSTGRES_DB_NAME) \
       -e POSTGRES_USER=$(POSTGRES_DB_USER) \
