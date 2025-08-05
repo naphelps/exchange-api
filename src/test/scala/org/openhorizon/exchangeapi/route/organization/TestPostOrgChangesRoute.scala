@@ -419,7 +419,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
     info("request.lastUpdated:  " + request.lastUpdated)
     val response: HttpResponse[String] = Http(URL + TESTORGS(0).orgId + ROUTE).postData(Serialization.write(request)).headers(ACCEPT).headers(CONTENT).headers(ROOTAUTH).asString
     info("Code: " + response.code)
-    info("Body: " + response.body)git status
+    info("Body: " + response.body)
     assert(response.code === HttpCode.POST_OK.intValue)
     val responseObj: ResourceChangesRespObject = JsonMethods.parse(response.body).extract[ResourceChangesRespObject]
     assert(responseObj.changes.nonEmpty)
