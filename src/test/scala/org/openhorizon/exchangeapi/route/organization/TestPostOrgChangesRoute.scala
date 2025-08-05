@@ -38,6 +38,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
   private implicit val formats: DefaultFormats.type = DefaultFormats
   
   val TIMESTAMP: java.sql.Timestamp = ApiTime.nowUTCTimestamp
+  val TIMESTAMPSTR: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).toString)
   info(s"TIMESTAMP:                          ${TIMESTAMP}")
   info(s"TIMESTAMP Zoned:                    ${TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC"))}")
   info("")
@@ -71,7 +72,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
         orgType            = "",
         label              = "testPostOrgChangesRouteOrg",
         description        = "Test Organization 1",
-        lastUpdated        = ApiTime.nowUTC,
+        lastUpdated        = TIMESTAMPSTR,
         tags               = None,
         limits             = "",
         heartbeatIntervals = ""),
@@ -80,7 +81,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
         orgType            = "",
         label              = "testPostOrgChangesRouteOrg",
         description        = "Test Organization 2",
-        lastUpdated        = ApiTime.nowUTC,
+        lastUpdated        = TIMESTAMPSTR,
         tags               = None,
         limits             = "",
         heartbeatIntervals = ""
@@ -117,8 +118,8 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
         arch               = "",
         id                 = TESTORGS(0).orgId + "/org1node",
         heartbeatIntervals = "",
-        lastHeartbeat      = Some(ApiTime.nowUTC),
-        lastUpdated        = ApiTime.nowUTC,
+        lastHeartbeat      = Some(TIMESTAMPSTR),
+        lastUpdated        = TIMESTAMPSTR,
         msgEndPoint        = "",
         name               = "",
         nodeType           = "",
@@ -135,8 +136,8 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
         arch               = "",
         id                 = TESTORGS(1).orgId + "/org2node",
         heartbeatIntervals = "",
-        lastHeartbeat      = Some(ApiTime.nowUTC),
-        lastUpdated        = ApiTime.nowUTC,
+        lastHeartbeat      = Some(TIMESTAMPSTR),
+        lastUpdated        = TIMESTAMPSTR,
         msgEndPoint        = "",
         name               = "",
         nodeType           = "",
@@ -159,7 +160,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
       name          = "",
       owner         = TESTUSERS(1).user, //org 1 user
       msgEndPoint   = "",
-      lastHeartbeat = ApiTime.nowUTC,
+      lastHeartbeat = TIMESTAMPSTR,
       publicKey     = ""
     ),
       AgbotRow(
@@ -169,7 +170,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
         name          = "",
         owner         = TESTUSERS(2).user, //org 2 user
         msgEndPoint   = "",
-        lastHeartbeat = ApiTime.nowUTC,
+        lastHeartbeat = TIMESTAMPSTR,
         publicKey     = ""
       ),
       AgbotRow(
@@ -179,7 +180,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
         name          = "",
         owner         = rootUser,
         msgEndPoint   = "",
-        lastHeartbeat = ApiTime.nowUTC,
+        lastHeartbeat = TIMESTAMPSTR,
         publicKey     = ""
       )
     )
