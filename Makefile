@@ -226,7 +226,7 @@ truststore: /etc/horizon/exchange/localhost.p12
 #-e EXCHANGE_DB_HOST=$(POSTGRES_CONTAINER_ADDRESS) \
 #-e EXCHANGE_DB_NAME=$(POSTGRES_DB_NAME) \
 #-e EXCHANGE_DB_USER=$(POSTGRES_DB_USER)
-target/docker/.run-docker:
+target/docker/.run-docker: target/docker/.run-docker-db-postgres-http
 	docker run \
       --name $(DOCKER_NAME) \
       --network $(DOCKER_NETWORK) \
