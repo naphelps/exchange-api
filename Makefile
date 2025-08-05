@@ -60,7 +60,7 @@ EXCHANGE_PEKKO_LOGLEVEL ?= $(EXCHANGE_LOG_LEVEL)
 EXCHANGE_ROOT_PW ?=
 # Number of days the SSL certificate is valid for
 EXCHANGE_TRUST_DUR ?= 1
-EXCHANGE_TRUST_PW ?=
+EXCHANGE_TRUST_PW ?= password
 # Use this to pass args to the exchange svr JVM by overriding JAVA_OPTS in your environment
 JAVA_OPTS ?=#-Xmx1G
 POSTGRES_CONTAINER_ADDRESS ?= $(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(POSTGRES_CONTAINER_NAME))
@@ -239,7 +239,7 @@ target/docker/.run-docker:
       -e EXCHANGE_PEKKO_HTTP_PORT=$(EXCHANGE_CONTAINER_PORT_HTTP) \
       -e EXCHANGE_PEKKO_LOGLEVEL=$(EXCHANGE_PEKKO_LOGLEVEL) \
       -e EXCHANGE_ROOT_PW=$(EXCHANGE_ROOT_PW) \
-      $(IMAGE_STRING):$(DOCKER_TAG)
+      ghcr.io/naphelps/exchange-ubi:testing
 	@touch $@
 
 .PHONY: run-docker
