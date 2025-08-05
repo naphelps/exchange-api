@@ -129,7 +129,7 @@ package-jar: target/scala-$(SCALA_VERSION_SHORT)/amd64_exchange-api_$(SCALA_VERS
 
 # Pre-Run  --------------------------------------------------------------------
 ## Pre-run - Docker Network -----------
-target/docker/.docker-network: target/docker/stage/Dockerfile
+target/docker/.docker-network:
 	docker network create $(DOCKER_NETWORK)
 	@touch $@
 
@@ -159,7 +159,6 @@ target/docker/.run-docker-db-postgres-http: target/docker/.docker-network
 	docker run \
       -d \
       -e TZ="GMT" \
-      -e PTZ="GMT" \
       -e POSTGRES_HOST_AUTH_METHOD=trust \
       -e POSTGRES_DB=$(POSTGRES_DB_NAME) \
       -e POSTGRES_USER=$(POSTGRES_DB_USER) \
