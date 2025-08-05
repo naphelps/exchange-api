@@ -19,7 +19,7 @@ import slick.jdbc
 import slick.jdbc.PostgresProfile.api._
 
 import java.sql.Timestamp
-import java.time.ZoneId
+import java.time.{ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -38,9 +38,19 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
   private implicit val formats: DefaultFormats.type = DefaultFormats
   
   val TIMESTAMP: java.sql.Timestamp = ApiTime.nowUTCTimestamp
+  info(s"TIMESTAMP:          ${TIMESTAMP}")
+  
   val TIMESTAMPPAST60: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).minusSeconds(60).toString)
+  info(s"TIMESTAMPPAST60:    ${ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).minusSeconds(60).toString)}")
+  info(s"searched:           ${java.sql.Timestamp.from(ZonedDateTime.parse(TIMESTAMPPAST60).toInstant.minusMillis(10000))}")
+  
   val TIMESTAMPPAST600: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).minusSeconds(600).toString)
+  info(s"TIMESTAMPPAST600:   ${ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).minusSeconds(600).toString)}")
+  info(s"searched:           ${java.sql.Timestamp.from(ZonedDateTime.parse(TIMESTAMPPAST600).toInstant.minusMillis(10000))}")
+  
   val TIMESTAMPFUTURE600: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).plusSeconds(600).toString)
+  info(s"TIMESTAMPFUTURE600: ${ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).plusSeconds(600).toString)}")
+  info(s"searched:           ${java.sql.Timestamp.from(ZonedDateTime.parse(TIMESTAMPFUTURE600).toInstant.minusMillis(10000))}")
 
   private val HUBADMINPASSWORD = "hubadminpassword"
   private val ORG1USERPASSWORD = "org1userpassword"
