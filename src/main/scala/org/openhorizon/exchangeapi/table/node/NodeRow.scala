@@ -10,8 +10,7 @@ import org.openhorizon.exchangeapi.utility.StrConstants
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile.api._
 
-import java.sql.Timestamp
-import java.time.ZoneId
+import java.time.{Instant, ZoneId}
 import java.util.UUID
 
 final case class NodeRow(id: String,
@@ -33,7 +32,7 @@ final case class NodeRow(id: String,
                          clusterNamespace: Option[String] = None,
                          isNamespaceScoped: Boolean = false) {
   def this(heartbeat: Option[String],
-           modified_at: Timestamp,
+           modified_at: Instant,
            node: String,
            organization: String,
            owner: UUID,
@@ -45,11 +44,7 @@ final case class NodeRow(id: String,
          id = node,
          isNamespaceScoped = request.isNamespaceScoped.get,
          lastHeartbeat = heartbeat,
-         lastUpdated =
-           fixFormatting(modified_at.toInstant
-                                    .atZone(ZoneId.of("UTC"))
-                                    .withZoneSameInstant(ZoneId.of("UTC"))
-                                    .toString),
+         lastUpdated = modified_at.toString,
          msgEndPoint = request.msgEndPoint.get,
          name = request.name,
          nodeType = request.nodeType.get,

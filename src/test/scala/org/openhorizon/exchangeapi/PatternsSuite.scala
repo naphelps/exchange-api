@@ -31,7 +31,7 @@ import scalaj.http._
 import slick.jdbc
 import slick.jdbc.PostgresProfile.api._
 
-import java.time.ZonedDateTime
+import java.time.{Instant, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -166,7 +166,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
   
   private val AWAITDURATION: Duration = 15.seconds
   
-  val TIMESTAMP: java.sql.Timestamp = ApiTime.nowUTCTimestamp
+  val TIMESTAMP: Instant = ApiTime.nowUTCTimestamp
   
   val rootUser: UUID = Await.result(DBCONNECTION.run(UsersTQ.filter(users => users.organization === "root" && users.username === "root").map(_.user).result.head), AWAITDURATION)
   

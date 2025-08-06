@@ -21,11 +21,7 @@ final case class User(admin: Boolean = false,
       apikeys = apikeys,
       hubAdmin = tuple._1.isHubAdmin,
       email = tuple._1.email.getOrElse(""),
-      lastUpdated =
-        fixFormatting(tuple._1.modifiedAt.toInstant
-          .atZone(ZoneId.of("UTC"))
-          .withZoneSameInstant(ZoneId.of("UTC"))
-          .toString),
+      lastUpdated = tuple._1.modifiedAt.toString,
       password = tuple._1.password.getOrElse(""),
       updatedBy = tuple._2 match {
         case Some(user) => s"${user._1}/${user._3}"

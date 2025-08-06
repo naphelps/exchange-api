@@ -19,7 +19,7 @@ import org.openhorizon.exchangeapi.table.resourcechange.{ResChangeCategory, ResC
 import org.openhorizon.exchangeapi.utility._
 
 import java.sql.Timestamp
-import java.time.ZoneId
+import java.time.{Instant, ZoneId}
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -121,7 +121,7 @@ trait UserApiKeys extends JacksonSupport with AuthenticationSupport {
           val sha256Token = ApiKeyUtils.generateApiKeyHashedValue()
           val argon2ForDb = Password.hash(sha256Token)
           val keyId = ApiKeyUtils.generateApiKeyId()
-          val timestamp: java.sql.Timestamp = ApiTime.nowUTCTimestamp
+          val timestamp: Instant = ApiTime.nowUTCTimestamp
         
         resourceUuidOpt match {
           case Some(userUuid) =>
@@ -174,10 +174,7 @@ trait UserApiKeys extends JacksonSupport with AuthenticationSupport {
                                      description = body.description.getOrElse(""),
                                      label = body.label.getOrElse(""),
                                      lastUpdated =
-                                       timestamp.toInstant
-                                                .atZone(ZoneId.of("UTC"))
-                                                .withZoneSameInstant(ZoneId.of("UTC"))
-                                                .toString,
+                                       timestamp.toString,
                                      owner = ownerStr,
                                      value = sha256Token)
                 

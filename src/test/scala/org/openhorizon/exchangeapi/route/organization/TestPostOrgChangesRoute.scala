@@ -19,7 +19,7 @@ import slick.jdbc
 import slick.jdbc.PostgresProfile.api._
 
 import java.sql.Timestamp
-import java.time.{ZoneId, ZonedDateTime}
+import java.time.{Instant, ZoneId, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -37,23 +37,11 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
 
   private implicit val formats: DefaultFormats.type = DefaultFormats
   
-  val TIMESTAMP: java.sql.Timestamp = ApiTime.nowUTCTimestamp
-  val TIMESTAMPSTR: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).toString)
-  info(s"TIMESTAMP:                          ${TIMESTAMP}")
-  info(s"TIMESTAMP Zoned:                    ${TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC"))}")
-  info("")
-  val TIMESTAMPPAST60: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).minusSeconds(60).toString)
-  info(s"TIMESTAMPPAST60:                    ${ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).minusSeconds(60).toString)}")
-  info(s"Timestamp to be searched:           ${java.sql.Timestamp.from(ZonedDateTime.parse(TIMESTAMPPAST60).toInstant.minusMillis(10000))}")
-  info("")
-  val TIMESTAMPPAST600: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).minusSeconds(600).toString)
-  info(s"TIMESTAMPPAST600:                   ${ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).minusSeconds(600).toString)}")
-  info(s"Timestamp to be searched:           ${java.sql.Timestamp.from(ZonedDateTime.parse(TIMESTAMPPAST600).toInstant.minusMillis(10000))}")
-  info("")
-  val TIMESTAMPFUTURE600: String = ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).plusSeconds(600).toString)
-  info(s"TIMESTAMPFUTURE600:                 ${ApiTime.fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).plusSeconds(600).toString)}")
-  info(s"Timestamp to be searched:           ${java.sql.Timestamp.from(ZonedDateTime.parse(TIMESTAMPFUTURE600).toInstant.minusMillis(10000))}")
-  info("")
+  val INSTANT = Instant.now()
+  val TIMESTAMPSTR: String = INSTANT.toString
+  val TIMESTAMPPAST60: String = INSTANT.minusSeconds(60).toString
+  val TIMESTAMPPAST600: String = INSTANT.minusSeconds(600).toString
+  val TIMESTAMPFUTURE600: String = INSTANT.plusSeconds(600).toString
   private val HUBADMINPASSWORD = "hubadminpassword"
   private val ORG1USERPASSWORD = "org1userpassword"
   private val ORG2USERPASSWORD = "org2userpassword"
@@ -89,24 +77,24 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
     )
 
   private val TESTUSERS: Seq[UserRow] = {
-    Seq(UserRow(createdAt    = TIMESTAMP,
+    Seq(UserRow(createdAt    = INSTANT,
                 isHubAdmin   = true,
                 isOrgAdmin   = false,
-                modifiedAt   = TIMESTAMP,
+                modifiedAt   = INSTANT,
                 organization = "root",
                 password     = Option(Password.hash(HUBADMINPASSWORD)),
                 username     = "testPostOrgChangesRouteHubAdmin"),
-        UserRow(createdAt    = TIMESTAMP,
+        UserRow(createdAt    = INSTANT,
                 isHubAdmin   = false,
                 isOrgAdmin   = false,
-                modifiedAt   = TIMESTAMP,
+                modifiedAt   = INSTANT,
                 organization = TESTORGS(0).orgId,
                 password     = Option(Password.hash(ORG1USERPASSWORD)),
                 username     = "org1user"),
-        UserRow(createdAt    = TIMESTAMP,
+        UserRow(createdAt    = INSTANT,
                 isHubAdmin   = false,
                 isOrgAdmin   = false,
-                modifiedAt   = TIMESTAMP,
+                modifiedAt   = INSTANT,
                 organization = TESTORGS(1).orgId,
                 password     = Option(Password.hash(ORG2USERPASSWORD)),
                 username     = "org2user"))
@@ -204,7 +192,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "true",
                       resource = "org",
                       operation = "created",
-                      lastUpdated = Timestamp.from(TIMESTAMP.toInstant.minusSeconds(3600))), //1 hour ago
+                      lastUpdated = INSTANT.minusSeconds(3600)), //1 hour ago
     // other org, not public -- 1
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(1).orgId,
@@ -213,7 +201,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "false",
                       resource = "agbot",
                       operation = "created",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // node category, id of other node -- 2
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(0).orgId,
@@ -222,7 +210,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "false",
                       resource = "agbotagreements",
                       operation = "deleted",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // mgmtpolicy -- 3
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(0).orgId,
@@ -231,7 +219,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "false",
                       resource = "nodeagreements",
                       operation = "deleted",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // other org, public -- 4
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(1).orgId,
@@ -240,7 +228,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "true",
                       resource = "node",
                       operation = "deleted",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // resource nodemsgs -- 5
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(1).orgId,
@@ -249,7 +237,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "true",
                       resource = "nodemsgs",
                       operation = "deleted",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // resource nodestatus ... 6
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(1).orgId,
@@ -258,7 +246,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "false",
                       resource = "nodestatus",
                       operation = "deleted",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // resource nodeagreements + op createdmodified -- 7
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(0).orgId,
@@ -267,7 +255,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "true",
                       resource = "nodeagreements",
                       operation = "created/modified",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // resource agbotagreements + op createdmodified -- 8
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(0).orgId,
@@ -276,7 +264,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "true",
                       resource = "agbotagreements",
                       operation = "created/modified",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // agbot success -- 9
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(0).orgId,
@@ -285,7 +273,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "false",
                       resource = "org",
                       operation = "created",
-                      lastUpdated = TIMESTAMP),
+                      lastUpdated = INSTANT),
     // 10
     ResourceChangeRow(changeId = 0L,
                       orgId = TESTORGS(0).orgId,
@@ -294,7 +282,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
                       public = "false",
                       resource = "ha_group",
                       operation = "modified",
-                      lastUpdated = TIMESTAMP)
+                      lastUpdated = INSTANT)
   )
 
   var lastChangeId: Long = 0L //will be set in beforeAll()
@@ -656,7 +644,7 @@ class TestPostOrgChangesRoute extends AnyFunSuite with BeforeAndAfterAll with Be
       public = "true",
       resource = "org",
       operation = "deleted",
-      lastUpdated = TIMESTAMP
+      lastUpdated = INSTANT
     )
     fixtureResourceChange(
       _ =>{

@@ -9,7 +9,7 @@ object ApiTime {
   def nowUTC: String = fixFormatting(ZonedDateTime.now.withZoneSameInstant(ZoneId.of("UTC")).toString)
   
   /** Returns now in UTC in java.sql.Timestamp type */
-  def nowUTCTimestamp: java.sql.Timestamp = java.sql.Timestamp.from(ZonedDateTime.now.withZoneSameInstant(ZoneId.of("UTC")).toInstant)
+  def nowUTCTimestamp(): Instant = Instant.now()
   
   /** Return UTC format of the time specified in seconds */
   def thenUTC(seconds: Long): String = fixFormatting(ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneId.of("UTC")).toString)

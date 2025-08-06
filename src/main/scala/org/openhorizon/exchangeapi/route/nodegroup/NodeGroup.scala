@@ -27,7 +27,7 @@ import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Compiled
 
 import java.sql.Timestamp
-import java.time.ZoneId
+import java.time.{Instant, ZoneId}
 import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -69,7 +69,7 @@ trait NodeGroup extends JacksonSupport with AuthenticationSupport {
     delete {
       logger.debug(s"DELETE /orgs/$organization/hagroups/$highAvailabilityGroup - By ${identity.resource}:${identity.role}")
       complete({
-        val changeTimestamp: Timestamp = ApiTime.nowUTCTimestamp
+        val changeTimestamp: Instant = ApiTime.nowUTCTimestamp
         val nodesQuery: Query[Nodes, NodeRow, Seq] =
           if (identity.isOrgAdmin || identity.isSuperUser)
             NodesTQ.getAllNodes(organization)
@@ -307,7 +307,7 @@ trait NodeGroup extends JacksonSupport with AuthenticationSupport {
           logger.debug(s"PUT /orgs/$organization/users/$highAvailabilityGroup - By ${identity.resource}:${identity.role}")
             validateWithMsg(reqBody.getAnyProblem) {
               complete({
-                val changeTimestamp: Timestamp = ApiTime.nowUTCTimestamp
+                val changeTimestamp: Instant = ApiTime.nowUTCTimestamp
                 val members: Option[Seq[String]] =
                   if (reqBody.members.isEmpty)
                     None
@@ -348,17 +348,10 @@ trait NodeGroup extends JacksonSupport with AuthenticationSupport {
                     numNodeGroupsUpdated <-
                       if (reqBody.description.nonEmpty)
                         Compiled(nodeGroupQuery.map(nodeGroup => (nodeGroup.description, nodeGroup.lastUpdated)))
-                                      .update((reqBody.description,
-                                               fixFormatting(changeTimestamp.toInstant
-                                                                            .atZone(ZoneId.of("UTC"))
-                                                                            .withZoneSameInstant(ZoneId.of("UTC"))
-                                                                            .toString)))
+                                      .update((reqBody.description, changeTimestamp.toString))
                       else
                         Compiled(nodeGroupQuery.map(_.lastUpdated))
-                                      .update(fixFormatting(changeTimestamp.toInstant
-                                                                           .atZone(ZoneId.of("UTC"))
-                                                                           .withZoneSameInstant(ZoneId.of("UTC"))
-                                                                           .toString))
+                                      .update(changeTimestamp.toString)
         
                     _ <-
                       if (!numNodeGroupsUpdated.equals(1))
@@ -529,7 +522,7 @@ trait NodeGroup extends JacksonSupport with AuthenticationSupport {
           validateWithMsg(reqBody.getAnyProblem) {
             complete({
               val admin: Boolean = (identity.isOrgAdmin || identity.isSuperUser)
-              val changeTimestamp: Timestamp = ApiTime.nowUTCTimestamp
+              val changeTimestamp: Instant = ApiTime.nowUTCTimestamp
               val nodeGroupQuery: Query[org.openhorizon.exchangeapi.table.node.group.NodeGroup, NodeGroupRow, Seq] =
                 NodeGroupTQ.filter(_.organization === organization)
                            .filter(_.name === highAvailabilityGroup)
@@ -556,10 +549,7 @@ trait NodeGroup extends JacksonSupport with AuthenticationSupport {
                                    description = reqBody.description,
                                    group = 0L,
                                    organization = organization,
-                                   lastUpdated = fixFormatting(changeTimestamp.toInstant
-                                                                              .atZone(ZoneId.of("UTC"))
-                                                                              .withZoneSameInstant(ZoneId.of("UTC"))
-                                                                              .toString),
+                                   lastUpdated = changeTimestamp.toString,
                                    name = highAvailabilityGroup)
                   
                   /*

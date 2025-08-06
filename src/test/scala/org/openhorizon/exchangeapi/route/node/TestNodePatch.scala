@@ -20,7 +20,7 @@ import scalaj.http.{Http, HttpResponse}
 import slick.jdbc
 import slick.jdbc.PostgresProfile.api._
 
-import java.time.ZoneId
+import java.time.{Instant, ZoneId}
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt}
 
@@ -38,7 +38,7 @@ class TestNodePatch extends AnyFunSuite with BeforeAndAfterAll {
   
   private implicit val formats: DefaultFormats.type = DefaultFormats
   
-  val TIMESTAMP: java.sql.Timestamp = ApiTime.nowUTCTimestamp
+  val TIMESTAMP: Instant = ApiTime.nowUTCTimestamp
   
   private val TESTUSERS: Seq[UserRow] =
     Seq(UserRow(createdAt    = TIMESTAMP,
@@ -582,7 +582,7 @@ class TestNodePatch extends AnyFunSuite with BeforeAndAfterAll {
         
         assert(change.head.category === ResChangeCategory.NODE.toString)
         assert(change.head.id === "n2")
-        assert(fixFormatting(change.head.lastUpdated.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).toString) !== testnodes.head.lastUpdated)
+        assert(change.head.lastUpdated.toString !== testnodes.head.lastUpdated)
         assert(change.head.operation === ResChangeOperation.MODIFIED.toString)
         assert(change.head.public === "false")
         assert(change.head.resource === ResChangeResource.NODE.toString)

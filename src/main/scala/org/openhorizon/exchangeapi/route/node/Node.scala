@@ -37,7 +37,7 @@ import slick.lifted.{Compiled, CompiledExecutable}
 
 import java.lang.IllegalStateException
 import java.sql.Timestamp
-import java.time.ZoneId
+import java.time.{Instant, ZoneId}
 import java.util.UUID
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -74,7 +74,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
       logger.debug(s"DELETE /orgs/$organization/nodes/$node - By ${identity.resource}:${identity.role}")
       
       validateWithMsg(None) {
-        val modified_at: Timestamp = ApiTime.nowUTCTimestamp
+        val modified_at: Instant = ApiTime.nowUTCTimestamp
         
         val deleteNode: DBIOAction[(Int, Int), NoStream, Effect with Effect.Write] =
           for {
@@ -492,7 +492,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                 
               logger.debug(s"PATCH /orgs/$organization/nodes/$node - attribute=$validAttribute"    /*request-body: ${reqBody.toString}"*/)
                 // Synchronize the timestamps of the records we are changing. This helps debugging/troubleshooting from the records and logs.
-                val changeTimestamp: Timestamp = ApiTime.nowUTCTimestamp
+                val changeTimestamp: Instant = ApiTime.nowUTCTimestamp
                 implicit val formats: DefaultFormats.type = DefaultFormats
                 // Multi-threaded rest requests. Need to break records into blocks based on request.
                 val session: String = UUID.randomUUID().toString
@@ -662,19 +662,11 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                       if (validAttribute == "clusterNamespace")
                         Compiled(NodesTQ.getNode(resource)
                                         .map(node => (node.clusterNamespace, node.lastUpdated)))
-                                        .update((reqBody.clusterNamespace,
-                                                 fixFormatting(changeTimestamp.toInstant
-                                                                              .atZone(ZoneId.of("UTC"))
-                                                                              .withZoneSameInstant(ZoneId.of("UTC"))
-                                                                              .toString)))
+                                        .update((reqBody.clusterNamespace, changeTimestamp.toString))
                       else if (validAttribute == "isNamespaceScoped")
                         Compiled(NodesTQ.getNode(resource)
                                         .map(node => (node.isNamespaceScoped, node.lastUpdated)))
-                                        .update((reqBody.isNamespaceScoped.get,
-                                                 fixFormatting(changeTimestamp.toInstant
-                                                                              .atZone(ZoneId.of("UTC"))
-                                                                              .withZoneSameInstant(ZoneId.of("UTC"))
-                                                                              .toString)))
+                                        .update((reqBody.isNamespaceScoped.get, changeTimestamp.toString))
                       else
                         Compiled(NodesTQ.getNode(resource)
                                         .map(node =>
@@ -703,10 +695,7 @@ trait Node extends JacksonSupport with AuthenticationSupport {
                                                   case "softwareVersions" => write(reqBody.softwareVersions.get)
                                                   case "token" => hashedPW
                                                   case "userInput" => write(reqBody.userInput.get)},
-                                                  fixFormatting(changeTimestamp.toInstant
-                                                                               .atZone(ZoneId.of("UTC"))
-                                                                               .withZoneSameInstant(ZoneId.of("UTC"))
-                                                                               .toString)))
+                                                  changeTimestamp.toString))
 
                     _ <-
                       if (nodesUpdated == 0||
@@ -971,12 +960,8 @@ trait Node extends JacksonSupport with AuthenticationSupport {
               Future { logger.debug(s"PUT /orgs/$organization/nodes/$node?noheartbeat=${noheartbeat.getOrElse("None")} - Completed request body input validation") }
               
               implicit val defaultFormats: DefaultFormats = DefaultFormats
-              val modified_at: Timestamp = ApiTime.nowUTCTimestamp
-              val modified_at_str: String =
-                fixFormatting(modified_at.toInstant
-                                         .atZone(ZoneId.of("UTC"))
-                                         .withZoneSameInstant(ZoneId.of("UTC"))
-                                         .toString)
+              val modified_at: Instant = ApiTime.nowUTCTimestamp
+              val modified_at_str: String = modified_at.toString
               
               val hashedToken: Option[String] =
                 if (reqBody.token.isDefined)

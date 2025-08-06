@@ -150,7 +150,7 @@ class ServicesSuite extends AnyFunSuite with BeforeAndAfterAll {
   implicit val formats: DefaultFormats.type = DefaultFormats // Brings in default date formats etc.
   private val AWAITDURATION: Duration = 15.seconds
   
-  val TIMESTAMP: java.sql.Timestamp = ApiTime.nowUTCTimestamp
+  val TIMESTAMP: Instant = ApiTime.nowUTCTimestamp
   
   val rootUser: UUID = Await.result(DBCONNECTION.run(UsersTQ.filter(users => users.organization === "root" && users.username === "root").map(_.user).result.head), AWAITDURATION)
 

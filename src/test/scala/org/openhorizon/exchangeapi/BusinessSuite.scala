@@ -32,7 +32,6 @@ import slick.jdbc
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.MappedToBase.mappedToIsomorphism
 
-import java.sql.Timestamp
 import scala.collection.immutable._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
@@ -103,7 +102,7 @@ class BusinessSuite extends AnyFunSuite with BeforeAndAfterAll {
   val orgsList = new ListBuffer[String]()
   val AWAITDURATION: Duration = 15.seconds
   val DBCONNECTION: jdbc.PostgresProfile.api.Database = DatabaseConnection.getDatabase
-  val timestamp: Timestamp = ApiTime.nowUTCTimestamp
+  val timestamp: Instant = ApiTime.nowUTCTimestamp
 
   implicit val formats: DefaultFormats.type = DefaultFormats // Brings in default date formats etc.
 

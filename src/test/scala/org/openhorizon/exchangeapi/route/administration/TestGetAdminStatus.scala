@@ -22,8 +22,7 @@ import scalaj.http.{Http, HttpResponse}
 import slick.jdbc
 import slick.jdbc.PostgresProfile.api._
 
-import java.sql.Timestamp
-import java.time.ZoneId
+import java.time.{Instant, ZoneId}
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, DurationInt}
@@ -43,8 +42,8 @@ class TestGetAdminStatus extends AnyFunSuite with BeforeAndAfterAll {
 
   private val PASSWORD = "password"
   
-  private val TIMESTAMP: Timestamp = ApiTime.nowUTCTimestamp
-  private val TIMESTAMPSTRING: String = fixFormatting(TIMESTAMP.toInstant.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.of("UTC")).toString)
+  private val TIMESTAMP: Instant = ApiTime.nowUTCTimestamp
+  private val TIMESTAMPSTRING: String = TIMESTAMP.toString
 
   private val TESTORGS: Seq[OrgRow] =
     Seq(OrgRow(description = "",
