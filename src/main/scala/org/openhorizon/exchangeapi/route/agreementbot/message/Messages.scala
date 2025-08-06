@@ -196,7 +196,7 @@ trait Messages extends JacksonSupport with AuthenticationSupport {
               _ = Future { logger.debug(s"POST /orgs/${organization}/agbots/${agreementBot}/msgs - ${identity.resource}:${identity.role}(${identity.identifier.getOrElse("")})(${identity.owner.getOrElse("")}) - Created change identifier:  ${createdChange}") }
               _ = Future { logger.debug(s"POST /orgs/${organization}/agbots/${agreementBot}/msgs - ${identity.resource}:${identity.role}(${identity.identifier.getOrElse("")})(${identity.owner.getOrElse("")}) - Created change:             ${timestamp}") }
               
-              timeExpires = timestamp.toString
+              timeExpires = timestamp.plusSeconds(reqBody.ttl.toLong).toString
               
               createdMsgForNode <-
                 (AgbotMsgsTQ returning AgbotMsgsTQ.map(_.msgId)) +=
