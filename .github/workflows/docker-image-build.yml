@@ -162,6 +162,7 @@ jobs:
       IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || github.repositoryUrl }}
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
+    needs: []
     runs-on: ubuntu-latest
     steps:
       - id: cache-workflow-restore
@@ -182,7 +183,7 @@ jobs:
           clean: false
 
       - if: steps.cache-workflow-restore.outputs.cache-hit != 'true' && steps.checkout.outcome == 'success'
-        uses: ./.github/workflows/gh-workflow.yml
+        uses: ${{ github.repository_owner }}/exchange-api/.github/workflows/gh-workflow.yml@${{ github.ref_name }}
 
       - name: Restore Checkout & Compile Deliverables
         id: cache-deliverable-restore
