@@ -281,7 +281,7 @@ jobs:
             ${{ vars.ANNOTATIONS || env.DEFAULT_ANNOTATIONS }}
 
       - env:
-          BUILD_TARGET: ${{ github.event_name == "push" && (vars.BUILD_TARGET || 'exchange-ubi') || inputs.build-target }}
+          BUILD_TARGET: ${{ github.event_name == 'push' && (vars.BUILD_TARGET || 'exchange-ubi') || inputs.build-target }}
           DOMAIN_DOCKERHUB: docker.io
           DOMAIN_GHCR: ghcr.io
           DOMAIN_QUAY: quay.io
