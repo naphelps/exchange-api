@@ -174,20 +174,15 @@ jobs:
             ~/work/exchange-api/exchange-api/src/main/resources/version.txt
           key: checkout-and-compile-workflow-${{ github.sha }}
 
-      - if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
+      - id: checkout
+        if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
         name: Checkout Github Repository
         uses: actions/checkout@v3
         with:
           clean: false
 
-      - if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
+      - if: steps.cache-workflow-restore.outputs.cache-hit != 'true' && steps.checkout.outcome == 'success'
         uses: ./.github/workflows/gh-workflow.yml
-
-      - if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
-        name: Checkout Github Repository
-        uses: actions/checkout@v3
-        with:
-          clean: false
 
       - name: Restore Checkout & Compile Deliverables
         id: cache-deliverable-restore
