@@ -5,12 +5,11 @@ import org.json4s.{DefaultFormats, Formats}
 import org.openhorizon.exchangeapi.auth.{Password, Role}
 import org.openhorizon.exchangeapi.route.node.PutNodesRequest
 import org.openhorizon.exchangeapi.table.deploymentpattern.OneUserInputService
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import org.openhorizon.exchangeapi.utility.StrConstants
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile.api._
 
-import java.time.{Instant, ZoneId}
+import java.time.Instant
 import java.util.UUID
 
 final case class NodeRow(id: String,

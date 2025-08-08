@@ -1,9 +1,5 @@
 package org.openhorizon.exchangeapi.table.user
 
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
-import org.openhorizon.exchangeapi.utility.StrConstants
-
-import java.time.ZoneId
 import java.util.UUID
 import org.openhorizon.exchangeapi.table.apikey.ApiKeyMetadata
 

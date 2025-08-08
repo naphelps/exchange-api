@@ -56,7 +56,7 @@ class TestNodeGetMsgRoute extends AnyFunSuite with BeforeAndAfterAll {
                           message     = """{msg1 from node1 to agbot1}""",
                           msgId       = -1,
                           nodeId      = "TestNodeGetMsgRoute/n1",
-                          timeExpires = ApiTime.futureUTC(1080),
+                          timeExpires = Instant.now().plusSeconds(1080.toLong).toString,
                           timeSent    = ApiTime.nowUTC))
   private val TESTNODES: Seq[NodeRow] =
     Seq(NodeRow(arch               = "",

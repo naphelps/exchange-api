@@ -4,7 +4,6 @@ import org.json4s.{DefaultFormats, JObject, JValue}
 import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.write
 import org.openhorizon.exchangeapi.auth.{Password, Role}
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import org.openhorizon.exchangeapi.table.resourcechange.ResChangeCategory.ResChangeCategory
 import org.openhorizon.exchangeapi.table.agreementbot.AgbotsTQ
 import org.openhorizon.exchangeapi.table.deploymentpattern.{OneUserInputService, OneUserInputValue, PatternRow, PatternsTQ}

@@ -38,7 +38,6 @@ import org.openhorizon.exchangeapi.table.service.key.ServiceKeysTQ
 import org.openhorizon.exchangeapi.table.service.policy.ServicePolicyTQ
 import org.openhorizon.exchangeapi.table.service.{SearchServiceTQ, ServicesTQ}
 import org.openhorizon.exchangeapi.table.user.{UserRow, UsersTQ}
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import org.openhorizon.exchangeapi.utility.{ApiRespType, ApiResponse, ApiTime, Configuration, ExchMsg}
 import org.postgresql.util.PSQLException
 import org.springframework.security.crypto.bcrypt.BCrypt

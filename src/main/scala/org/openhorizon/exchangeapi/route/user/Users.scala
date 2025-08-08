@@ -18,15 +18,12 @@ import org.openhorizon.exchangeapi.table.apikey.{ApiKeyMetadata, ApiKeyRow, ApiK
 import org.openhorizon.exchangeapi.utility.{ApiRespType, ApiResponse, ApiTime, ExchMsg, ExchangePosgtresErrorHandling, HttpCode, StrConstants}
 import slick.lifted.{CompiledStreamingExecutable, MappedProjection}
 
-import java.sql.Timestamp
 import java.time.Instant
 import java.util.UUID
 import scala.concurrent.Future
 
-//import org.openhorizon.exchangeapi.AuthenticationSupport._
 import org.json4s._
 import org.openhorizon.exchangeapi.auth.BadInputException
-import org.openhorizon.exchangeapi.table._
 import slick.jdbc.PostgresProfile.api._
 
 import scala.collection.immutable._

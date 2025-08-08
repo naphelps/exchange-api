@@ -1,6 +1,5 @@
 package org.openhorizon.exchangeapi.table.user
 
-import org.openhorizon.exchangeapi.utility.ApiTime
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile.api._
 

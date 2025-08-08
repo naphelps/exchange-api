@@ -1,6 +1,5 @@
 package org.openhorizon.exchangeapi.route.nodegroup
 
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import org.openhorizon.exchangeapi.table
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization

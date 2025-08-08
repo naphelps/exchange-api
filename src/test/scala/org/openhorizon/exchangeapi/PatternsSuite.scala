@@ -659,7 +659,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
 
 
   test("POST /orgs/"+orgid+"/changes - verify " + pattern + " was created and stored") {
-    val time = ApiTime.pastUTC(secondsAgo)
+    val time = Instant.now().minusSeconds(secondsAgo).toString
     val input = ResourceChangesRequest(0L, Some(time), maxRecords, None)
     val response = Http(URL+"/changes").postData(write(input)).method("post").headers(CONTENT).headers(ACCEPT).headers(USERAUTH).asString
     info("code: "+response.code)
@@ -805,7 +805,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
   }
 
   test("POST /orgs/"+orgid+"/changes - verify " + pattern + " was updated and stored") {
-    val time = ApiTime.pastUTC(secondsAgo)
+    val time = Instant.now().minusSeconds(secondsAgo).toString
     val input = ResourceChangesRequest(0L, Some(time), maxRecords, None)
     val response = Http(URL+"/changes").postData(write(input)).method("post").headers(CONTENT).headers(ACCEPT).headers(USERAUTH).asString
     info("code: "+response.code)
@@ -1159,7 +1159,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
   }
 
   test("POST /orgs/"+orgid+"/changes - verify " + pattern + " was updated via PATCH and stored") {
-    val time = ApiTime.pastUTC(secondsAgo)
+    val time = Instant.now().minusSeconds(secondsAgo).toString
     val input = ResourceChangesRequest(0L, Some(time), maxRecords, None)
     val response = Http(URL+"/changes").postData(write(input)).method("post").headers(CONTENT).headers(ACCEPT).headers(USERAUTH).asString
     info("code: "+response.code)
@@ -1696,7 +1696,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
   }
 
   test("POST /orgs/"+orgid+"/changes - verify " + pattern + "key was created and stored") {
-    val time = ApiTime.pastUTC(secondsAgo)
+    val time = Instant.now().minusSeconds(secondsAgo).toString
     val input = ResourceChangesRequest(0L, Some(time), maxRecords, None)
     val response = Http(URL+"/changes").postData(write(input)).method("post").headers(CONTENT).headers(ACCEPT).headers(USERAUTH).asString
     info("code: "+response.code)
@@ -1739,7 +1739,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
   }
 
   test("POST /orgs/"+orgid+"/changes - verify " + pattern + " key was deleted and stored") {
-    val time = ApiTime.pastUTC(secondsAgo)
+    val time = Instant.now().minusSeconds(secondsAgo).toString
     val input = ResourceChangesRequest(0L, Some(time), maxRecords, None)
     val response = Http(URL+"/changes").postData(write(input)).method("post").headers(CONTENT).headers(ACCEPT).headers(USERAUTH).asString
     info("code: "+response.code)
@@ -1778,7 +1778,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
   }
 
   test("POST /orgs/"+orgid+"/changes - verify " + pattern + " all keys were deleted and stored") {
-    val time = ApiTime.pastUTC(secondsAgo)
+    val time = Instant.now().minusSeconds(secondsAgo).toString
     val input = ResourceChangesRequest(0L, Some(time), maxRecords, None)
     val response = Http(URL+"/changes").postData(write(input)).method("post").headers(CONTENT).headers(ACCEPT).headers(USERAUTH).asString
     info("code: "+response.code)
@@ -1796,7 +1796,7 @@ class PatternsSuite extends AnyFunSuite with BeforeAndAfterAll {
   }
 
   test("POST /orgs/"+orgid+"/changes - verify " + pattern + "was deleted and stored") {
-    val time = ApiTime.pastUTC(secondsAgo)
+    val time = Instant.now().minusSeconds(secondsAgo).toString
     val input = ResourceChangesRequest(0L, Some(time), maxRecords, None)
     val response = Http(URL+"/changes").postData(write(input)).method("post").headers(CONTENT).headers(ACCEPT).headers(USERAUTH).asString
     info("code: "+response.code)

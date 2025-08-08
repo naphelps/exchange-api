@@ -1,7 +1,7 @@
 package org.openhorizon.exchangeapi.table.apikey
 import com.fasterxml.jackson.annotation.{JsonInclude, JsonProperty}
 
-import java.time.{Instant, ZoneId}
+import java.time.Instant
 import java.util.UUID
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

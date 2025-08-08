@@ -21,8 +21,7 @@ import org.openhorizon.exchangeapi.table.resourcechange.{ResChangeCategory, ResC
 import org.openhorizon.exchangeapi.utility.{ApiRespType, ApiResponse, ApiTime, ExchMsg, ExchangePosgtresErrorHandling, HttpCode}
 import slick.jdbc.PostgresProfile.api._
 
-import java.sql.Timestamp
-import java.time.{Instant, ZoneId}
+import java.time.Instant
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -62,7 +61,6 @@ trait AgentConfigurationManagement extends JacksonSupport with AuthenticationSup
                   certificate <- AgentCertificateVersionsTQ.delete
                   
                   timestamp: Instant = ApiTime.nowUTCTimestamp
-
 
                   checkAgentVersionsResult <- AgentVersionsChangedTQ.getChanged("IBM").result
 
@@ -223,6 +221,9 @@ trait AgentConfigurationManagement extends JacksonSupport with AuthenticationSup
       entity(as[AgentVersionsRequest]) {
         reqBody =>
           logger.debug(s"PUT /orgs/$organization/AgentFileVersion - By ${identity.resource}:${identity.role}")
+          
+          val INSTANT: Instant = Instant.now()
+          
           complete({
             organization match {
              case "IBM" =>
@@ -236,6 +237,7 @@ trait AgentConfigurationManagement extends JacksonSupport with AuthenticationSup
                       (resourcechange.ResourceChange(category = ResChangeCategory.ORG,
                                                      changeId = 0L,
                                                      id = organization,
+                                                     lastUpdated = INSTANT,
                                                      operation = ResChangeOperation.MODIFIED,
                                                      orgId = organization,
                                                      public = true,

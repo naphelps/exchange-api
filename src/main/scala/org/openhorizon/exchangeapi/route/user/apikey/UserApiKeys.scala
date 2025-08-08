@@ -18,8 +18,7 @@ import org.openhorizon.exchangeapi.table.user.{User, UserRow, UsersTQ}
 import org.openhorizon.exchangeapi.table.resourcechange.{ResChangeCategory, ResChangeOperation, ResChangeResource, ResourceChange, ResourceChangeRow, ResourceChangesTQ}
 import org.openhorizon.exchangeapi.utility._
 
-import java.sql.Timestamp
-import java.time.{Instant, ZoneId}
+import java.time.Instant
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._

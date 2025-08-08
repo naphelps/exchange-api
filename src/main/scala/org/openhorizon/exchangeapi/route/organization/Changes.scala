@@ -16,13 +16,11 @@ import org.openhorizon.exchangeapi.table.node.NodesTQ
 import org.openhorizon.exchangeapi.table.resourcechange.{ResChangeOperation, ResourceChangeRow, ResourceChanges, ResourceChangesTQ}
 import org.openhorizon.exchangeapi.utility.{ApiRespType, ApiResponse, ApiTime, Configuration, ExchMsg, ExchangePosgtresErrorHandling, HttpCode}
 import org.openhorizon.exchangeapi.ExchangeApi
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import slick.jdbc.PostgresProfile
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Compiled
 
-import java.sql.Timestamp
-import java.time.{Instant, ZoneId, ZonedDateTime}
+import java.time.{Instant, ZonedDateTime}
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}

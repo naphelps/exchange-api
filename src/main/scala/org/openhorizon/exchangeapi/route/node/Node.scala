@@ -17,7 +17,6 @@ import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshaller.NoContentExcept
 import org.json4s.jackson.Serialization.read
 import org.json4s.{DefaultFormats, Formats, MappingException}
 import org.json4s.native.Serialization.write
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import org.openhorizon.exchangeapi.ExchangeApiApp.{cacheResourceIdentity, cacheResourceOwnership, complete, exchAuth, getResourceIdentityAndPassword, logger, validateWithMsg}
 import org.openhorizon.exchangeapi.auth.{Access, AccessDeniedException, AuthCache, AuthRoles, AuthenticationSupport, BadInputException, DBProcessingError, IIdentity, IUser, Identity, Identity2, OrgAndId, Password, ResourceNotFoundException, TNode}
 import org.openhorizon.exchangeapi.table.deploymentpattern.{OneUserInputService, PatternRow, Patterns, PatternsTQ}
@@ -36,8 +35,7 @@ import slick.jdbc.PostgresProfile.api._
 import slick.lifted.{Compiled, CompiledExecutable}
 
 import java.lang.IllegalStateException
-import java.sql.Timestamp
-import java.time.{Instant, ZoneId}
+import java.time.Instant
 import java.util.UUID
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}

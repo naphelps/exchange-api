@@ -159,17 +159,17 @@ class TestNodePutMgmtPolStatus extends AnyFunSuite with BeforeAndAfterAll with B
   
   test("PUT /orgs/" + TESTORGANIZATION.orgId + "/nodes/n1/managementStatus/pol1 -- 201 Ok - Update") {
     val mgmtPolStatus: NodeMgmtPolStatusRow =
-      NodeMgmtPolStatusRow(actualStartTime = Option(ApiTime.pastUTC(120)),
+      NodeMgmtPolStatusRow(actualStartTime = Option(Instant.now().minusSeconds(120).toString),
                            certificateVersion   = Option("0.0.1"),
                            configurationVersion = Option("0.0.2"),
-                           endTime              = Option(ApiTime.pastUTC(120)),
+                           endTime              = Option(Instant.now().minusSeconds(120).toString),
                            errorMessage         = Option("an error message"),
                            node                 = TESTNODE.id,
                            policy               = TESTMANAGEMENTPOLICY.managementPolicy,
-                           scheduledStartTime   = ApiTime.pastUTC(120),
+                           scheduledStartTime   = Instant.now().minusSeconds(120).toString,
                            softwareVersion      = Option("0.0.3"),
                            status               = Option("in progress"),
-                           updated              = ApiTime.pastUTC(120))
+                           updated              = Instant.now().minusSeconds(120).toString)
     
     Await.ready(DBCONNECTION.run(NodeMgmtPolStatuses += mgmtPolStatus), AWAITDURATION)
   

@@ -12,7 +12,6 @@ import org.apache.pekko.http.scaladsl.server.Directives.path
 import org.apache.pekko.http.scaladsl.server.Directives.{complete, delete, get, post, put, _}
 import org.apache.pekko.http.scaladsl.server.Route
 import org.openhorizon.exchangeapi.ExchangeApiApp.cacheResourceOwnership
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import org.openhorizon.exchangeapi.auth.{Access, AccessDeniedException, AuthRoles, AuthenticationSupport, BadInputException, Identity, Identity2, OrgAndId, ResourceNotFoundException, TNode}
 import org.openhorizon.exchangeapi.table.node.group.{NodeGroupRow, NodeGroupTQ}
 import org.openhorizon.exchangeapi.table.node.group.assignment.{NodeGroupAssignment, NodeGroupAssignmentRow, NodeGroupAssignmentTQ, PostPutNodeGroupsRequest}
@@ -26,8 +25,7 @@ import slick.dbio.Effect
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Compiled
 
-import java.sql.Timestamp
-import java.time.{Instant, ZoneId}
+import java.time.Instant
 import java.util.UUID
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt

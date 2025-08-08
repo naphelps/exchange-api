@@ -17,12 +17,10 @@ import org.openhorizon.exchangeapi.table.node.group.assignment.{NodeGroupAssignm
 import org.openhorizon.exchangeapi.table.node.group.{NodeGroup, NodeGroupRow, NodeGroupTQ}
 import org.openhorizon.exchangeapi.table.resourcechange.{ResChangeCategory, ResChangeOperation, ResChangeResource, ResourceChangeRow, ResourceChangesTQ}
 import org.openhorizon.exchangeapi.utility.{ApiRespType, ApiResponse, ApiTime, ExchMsg, HttpCode}
-import org.openhorizon.exchangeapi.utility.ApiTime.fixFormatting
 import org.postgresql.util.PSQLException
 import slick.jdbc.PostgresProfile.api._
 
-import java.sql.Timestamp
-import java.time.{Instant, ZoneId}
+import java.time.Instant
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
