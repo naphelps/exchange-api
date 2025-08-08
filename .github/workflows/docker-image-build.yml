@@ -183,7 +183,7 @@ jobs:
           clean: false
 
       - if: steps.cache-workflow-restore.outputs.cache-hit != 'true' && steps.checkout.outcome == 'success'
-        uses: ${{ github.repository_owner }}/exchange-api/.github/workflows/gh-workflow.yml@${{ github.ref_name }}
+        uses: format('{0}/exchange-api/.github/workflows/gh-workflow.yml@{1}' github.repository_owner, github.ref_name)
 
       - name: Restore Checkout & Compile Deliverables
         id: cache-deliverable-restore
