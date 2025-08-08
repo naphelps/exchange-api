@@ -181,7 +181,7 @@ jobs:
           clean: false
 
       - if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
-        uses: ${{ github.repository }}/.github/workflows/gh-workflow.yml
+        uses: ${{ format('{0}/.github/workflows/gh-workflow.yml', github.repository) }}
 
       - if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
         name: Checkout Github Repository
