@@ -69,10 +69,10 @@ jobs:
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
     runs-on: ubuntu-latest
-    # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || 'exchange-alpine,exchange-ubi') || inputs.build-targets }}
+    # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('[exchange-alpine,exchange-ubi]')) || inputs.build-targets }}
     strategy:
       matrix:
-        build-targets: ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('[exchange-alpine,exchange-ubi]')) || inputs.build-targets }}
+        build-targets: ${{ '[exchange-alpine,exchange-ubi]' }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
