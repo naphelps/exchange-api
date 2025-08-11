@@ -62,7 +62,6 @@ jobs:
         name: Restore Checkout & Compile Workflows
         uses: actions/cache/restore@v4
         with:
-          fail-on-cache-miss: true
           lookup-only: true
           key: checkout-and-compile-workflow-${{ github.sha }}
           path: |
@@ -72,7 +71,7 @@ jobs:
 
   checkout-and-compile:
     uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
-    if: failure()
+    if: ${{ jobs.restore-cache-or-checkout.outputs.cache-hit != 'true' }}
     needs: restore-cache-or-checkout
 
   set-matrix-build-targets:
