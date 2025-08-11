@@ -7,8 +7,9 @@ on:
       build-target:
         type: choice
         description: "Dockerfile target to build image"
-        default: 'exchange-ubi'
+        default: 'exchange-alpine,exchange-ubi'
         options:
+          - exchange-alpine,exchange-ubi
           - exchange-alpine
           - exchange-ubi
       registry-dockerhub-enabled:
@@ -68,8 +69,8 @@ jobs:
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
     runs-on: ubuntu-latest
-    #strategy:
-    #  matrix: ${{  }}
+    strategy:
+      matrix: ${{ github.event_name == 'push' && (vars.BUILD_TARGETS) || 'exchange-ubi') || inputs.build-target }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
