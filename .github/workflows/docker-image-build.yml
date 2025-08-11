@@ -55,8 +55,25 @@ env:
   RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
 # ${{ format('{0}/exchange-api/.github/workflows/gh-workflow.yml@{1}' github.repository_owner, github.ref_name) }}
 jobs:
+  restore-cache-or-checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - id: cache-workflow-restore
+        name: Restore Checkout & Compile Workflows
+        uses: actions/cache/restore@v4
+        with:
+          fail-on-cache-miss: true
+          lookup-only: true
+          key: checkout-and-compile-workflow-${{ github.sha }}
+          path: |
+            ~/work/exchange-api/exchange-api/.git
+            ~/work/exchange-api/exchange-api/.github
+            ~/work/exchange-api/exchange-api/src/main/resources/version.txt
+
   checkout-and-compile:
-    uses: ${{ format('naphelps/exchange-api/.github/workflows/gh-workflow.yml@{0}', github.ref_name) }}
+    uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
+    if: failure()
+    needs: restore-cache-or-checkout
 
   set-matrix-build-targets:
     env:
