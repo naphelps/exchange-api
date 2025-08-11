@@ -5,33 +5,40 @@ on:
   workflow_dispatch:
     inputs:
       build-targets:
-        type: choice
-        description: "Dockerfile target to build image"
         default: "['exchange-alpine', 'exchange-ubi']"
+        description: "Dockerfile target to build image"
+        type: choice
         options:
           - "['exchange-alpine', 'exchange-ubi']"
           - "['exchange-alpine']"
           - "['exchange-ubi']"
+      image-platforms:
+        default: "linux/amd64,linux/arm64,linux/ppc64le,linux/s390x"
+        description: "Platforms to build containers for"
+        options:
+          - "linux/amd64,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x"
+          - "linux/amd64,linux/arm64,linux/ppc64le,linux/s390x"
+        type: choice
       registry-dockerhub-enabled:
-        type: boolean
+        default: true
         description: "Enable container registry DockerHub?"
-        default: true
+        type: boolean
       registry-ghcr-enabled:
-        type: boolean
+        default: true
         description: "Enable container registry GitHub Container Registry (GHCR)?"
-        default: true
+        type: boolean
       registry-quay-enabled:
-        type: boolean
+        default: true
         description: "Enable container registry Quay?"
-        default: true
+        type: boolean
       tag-latest-enabled:
-        type: boolean
-        description: "Enable latest tag on current build?"
         default: false
-      tag-test-enabled:
+        description: "Enable latest tag on current build?"
         type: boolean
-        description: "Enable test tag on current build?"
+      tag-test-enabled:
         default: true
+        description: "Enable test tag on current build?"
+        type: boolean
   push:
     branches:
       - master
@@ -75,7 +82,7 @@ jobs:
       IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
       IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
       IMAGE_LICENSES:       ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
-      IMAGE_PLATFORMS:      ${{ vars.IMAGE_PLATFORMS || 'linux/amd64,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x' }}
+      IMAGE_PLATFORMS:      ${{ github.event_name == 'push' && (vars.IMAGE_PLATFORMS || 'linux/amd64,linux/arm64,linux/ppc64le,linux/s390x') || inputs.image-platforms }}
       IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || github.repositoryUrl }}
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
