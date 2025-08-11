@@ -51,8 +51,15 @@ jobs:
   checkout-and-compile:
     uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
 
+  set-matrix-values:
+    runs-on: ubuntu-latest
+    steps:
+      - id: set-values
+        run: |
+          echo "build-targets=matrix::{\"build-targets\":[\"exchange-alpine\",\"exchange-ubi\"]}" >> $GITHUB_OUTPUT
+
   something2:
-    needs: checkout-and-compile
+    needs: [checkout-and-compile, set-matrix-values]
     env:
       RED_HAT_VERSION:      ${{ vars.RED_HAT_VERSION || '10' }}
       RED_HAT_UBI_TYPE:     ${{ vars.RED_HAT_UBI_TYPE  || 'minimal' }}
@@ -71,8 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('[exchange-alpine,exchange-ubi]')) || inputs.build-targets }}
     strategy:
-      matrix:
-        build-targets: ${{ inputs.build-targets }}
+      matrix: ${{ fromJson(needs.set-matrix-values.output.build-targets) }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
