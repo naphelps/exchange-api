@@ -7,11 +7,11 @@ on:
       build-targets:
         type: choice
         description: "Dockerfile target to build image"
-        default: 'exchange-alpine,exchange-ubi'
+        default: "[exchange-alpine,exchange-ubi]"
         options:
-          - exchange-alpine,exchange-ubi
-          - exchange-alpine
-          - exchange-ubi
+          - "[exchange-alpine,exchange-ubi]"
+          - "[exchange-alpine]"
+          - "[exchange-ubi]"
       registry-dockerhub-enabled:
         type: boolean
         description: "Enable container registry DockerHub?"
@@ -72,7 +72,7 @@ jobs:
     # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || 'exchange-alpine,exchange-ubi') || inputs.build-targets }}
     strategy:
       matrix:
-        build-targets: ["${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('exchange-alpine,exchange-ubi')) || inputs.build-targets }}"]
+        build-targets: ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('[exchange-alpine,exchange-ubi]')) || inputs.build-targets }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
