@@ -57,6 +57,8 @@ jobs:
       - id: set-values
         run: |
           echo "build-targets={\"build-targets\":[\"exchange-alpine\",\"exchange-ubi\"]}" >> $GITHUB_OUTPUT
+    outputs:
+      build-targets: ${{ steps.set-values.outputs.build-targets }}
 
   something2:
     needs: [checkout-and-compile, set-matrix-values]
