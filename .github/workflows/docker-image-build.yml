@@ -56,7 +56,7 @@ jobs:
     steps:
       - id: set-values
         run: |
-          echo "build-targets={\"build-targets\":${{ inputs.build-targets }}}" >> $GITHUB_OUTPUT
+          echo "build-targets={\"build-targets\":${{ github.event_name == 'push' && (vars.BUILD_TARGET || "['exchange-alpine', 'exchange-ubi']") || inputs.build-targets }}}" >> $GITHUB_OUTPUT
     outputs:
       build-targets: ${{ steps.set-values.outputs.build-targets }}
 
