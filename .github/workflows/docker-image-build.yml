@@ -78,7 +78,8 @@ jobs:
     runs-on: ubuntu-latest
     # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('[exchange-alpine,exchange-ubi]')) || inputs.build-targets }}
     strategy:
-      matrix: ${{ fromJson(needs.set-matrix-values.output.build-targets) }}
+      matrix:
+        build-targets: ${{ fromJson(needs.set-matrix-values.outputs.build-targets) }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
