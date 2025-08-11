@@ -55,7 +55,9 @@ env:
   RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
 # ${{ format('{0}/exchange-api/.github/workflows/gh-workflow.yml@{1}' github.repository_owner, github.ref_name) }}
 jobs:
-  restore-cache-or-checkout:
+  cache-restore-check:
+    outputs:
+      cache-hit: ${{ steps.cache-workflow-restore.outputs.cache-hit }}
     runs-on: ubuntu-latest
     steps:
       - id: cache-workflow-restore
@@ -69,10 +71,11 @@ jobs:
             ~/work/exchange-api/exchange-api/.github
             ~/work/exchange-api/exchange-api/src/main/resources/version.txt
 
+  # On rebuild skip this job.
   checkout-and-compile:
     uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
-    if: ${{ needs.restore-cache-or-checkout.outputs.cache-hit != 'true' }}
-    needs: restore-cache-or-checkout
+    if: ${{ needs.cache-restore-check.outputs.cache-hit != 'true' }}
+    needs: cache-restore-check
 
   set-matrix-build-targets:
     env:
@@ -85,6 +88,7 @@ jobs:
         run: |
           echo "build-targets=${{ env.BUILD_TARGETS }}" >> $GITHUB_OUTPUT
 
+  # On rebuild, skip checking-out source and compilation, and restore from cache instead.
   something2:
     needs: [checkout-and-compile, set-matrix-build-targets]
     env:
