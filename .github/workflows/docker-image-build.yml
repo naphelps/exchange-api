@@ -51,17 +51,19 @@ jobs:
   checkout-and-compile:
     uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
 
-  set-matrix-values:
+  set-matrix-build-targets:
+    env:
+      BUILD_TARGETS: ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || '[\"exchange-alpine\", \"exchange-ubi\"]') || inputs.build-targets }}
+    outputs:
+      build-targets: ${{ steps.set-values.outputs.build-targets }}
     runs-on: ubuntu-latest
     steps:
       - id: set-values
         run: |
-          echo "build-targets=${{ github.event_name == 'push' && (vars.BUILD_TARGETS || '[\"exchange-alpine\", \"exchange-ubi\"]') || inputs.build-targets }}" >> $GITHUB_OUTPUT
-    outputs:
-      build-targets: ${{ steps.set-values.outputs.build-targets }}
+          echo "build-targets=${{ env.BUILD_TARGETS }}" >> $GITHUB_OUTPUT
 
   something2:
-    needs: [checkout-and-compile, set-matrix-values]
+    needs: [checkout-and-compile, set-matrix-build-targets]
     env:
       RED_HAT_VERSION:      ${{ vars.RED_HAT_VERSION || '10' }}
       RED_HAT_UBI_TYPE:     ${{ vars.RED_HAT_UBI_TYPE  || 'minimal' }}
@@ -73,7 +75,7 @@ jobs:
       IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
       IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
       IMAGE_LICENSES:       ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
-      IMAGE_PLATFORMS:      ${{ vars.IMAGE_PLATFORMS || 'linux/amd64,linux/arm64,linux/ppc64le,linux/s390x' }}
+      IMAGE_PLATFORMS:      ${{ vars.IMAGE_PLATFORMS || 'linux/amd64,linux/arm64,linux/ppc64le,linux/riscv64,linux/s390x' }}
       IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || github.repositoryUrl }}
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
@@ -81,7 +83,7 @@ jobs:
     # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('[exchange-alpine,exchange-ubi]')) || inputs.build-targets }}
     strategy:
       matrix:
-        build-targets: ${{ fromJson(needs.set-matrix-values.outputs.build-targets) }}
+        build-targets: ${{ fromJson(needs.set-matrix-build-targets.outputs.build-targets) }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
