@@ -47,12 +47,11 @@ env:
   RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
 # ${{ format('{0}/exchange-api/.github/workflows/gh-workflow.yml@{1}' github.repository_owner, github.ref_name) }}
 jobs:
-  checkoutandcompile:
-    name: Checkout & Compile
+  checkout-and-compile:
     uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
 
   something2:
-    needs: checkoutandcompile
+    needs: checkout-and-compile
     env:
       RED_HAT_VERSION:      ${{ vars.RED_HAT_VERSION || '10' }}
       RED_HAT_UBI_TYPE:     ${{ vars.RED_HAT_UBI_TYPE  || 'minimal' }}
@@ -69,6 +68,8 @@ jobs:
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
     runs-on: ubuntu-latest
+    #strategy:
+    #  matrix: ${{  }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
