@@ -71,7 +71,7 @@ jobs:
 
   checkout-and-compile:
     uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
-    if: ${{ jobs.restore-cache-or-checkout.outputs.cache-hit != 'true' }}
+    if: ${{ needs.restore-cache-or-checkout.outputs.cache-hit != 'true' }}
     needs: restore-cache-or-checkout
 
   set-matrix-build-targets:
