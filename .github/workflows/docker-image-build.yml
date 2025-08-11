@@ -4,10 +4,10 @@ on:
   workflow_call:
   workflow_dispatch:
     inputs:
-      build-target:
+      build-targets:
         type: choice
         description: "Dockerfile target to build image"
-        default: 'exchange-alpine,exchange-ubi'
+        default: exchange-alpine,exchange-ubi
         options:
           - exchange-alpine,exchange-ubi
           - exchange-alpine
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        build-targets: ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || 'exchange-alpine,exchange-ubi') || inputs.build-target }}
+        build-targets: ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || exchange-alpine,exchange-ubi) || inputs.build-targets }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
@@ -232,4 +232,4 @@ jobs:
             ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
             ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
             ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
-          target: ${{ env.BUILD_TARGET }}
+          target: ${{ matrix.build-targets }}
