@@ -12,9 +12,8 @@ env:
   RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
 
 jobs:
-  something:
+  checkout-and-compile:
     runs-on: ubuntu-latest
-
     steps:
       # Cache the entire project directory, Corsair dependency cache, and deliverables.
       - name: Cache Project Directories and Files
