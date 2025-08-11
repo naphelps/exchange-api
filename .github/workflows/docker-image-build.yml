@@ -72,7 +72,7 @@ jobs:
     # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || 'exchange-alpine,exchange-ubi') || inputs.build-targets }}
     strategy:
       matrix:
-        build-targets: [ ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || 'exchange-alpine,exchange-ubi') || inputs.build-targets }} ]
+        build-targets: [ ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('exchange-alpine','exchange-ubi')) || inputs.build-targets }} ]
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
