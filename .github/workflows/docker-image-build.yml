@@ -7,7 +7,7 @@ on:
       build-targets:
         type: choice
         description: "Dockerfile target to build image"
-        default: [exchange-alpine,exchange-ubi]
+        default: "[exchange-alpine,exchange-ubi]"
         options:
           - "[exchange-alpine,exchange-ubi]"
           - "[exchange-alpine]"
