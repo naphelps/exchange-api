@@ -90,7 +90,7 @@ jobs:
 
   # On rebuild, skip checking-out source and compilation, and restore from cache instead.
   something2:
-    if: (needs.checkout-and-compile.result == 'skip' || needs.checkout-and-compile.result == 'success')
+    if: always()
     needs: [checkout-and-compile, set-matrix-build-targets]
     env:
       RED_HAT_VERSION:      ${{ vars.RED_HAT_VERSION || '10' }}
