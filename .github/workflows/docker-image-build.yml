@@ -130,13 +130,6 @@ jobs:
             ~/work/exchange-api/exchange-api/.github
             ~/work/exchange-api/exchange-api/src/main/resources/version.txt
 
-      #- id: checkout
-      #  if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
-      #  name: Checkout Github Repository
-      #  uses: actions/checkout@v3
-      #  with:
-      #    clean: false
-
       - name: Restore Checkout & Compile Deliverables
         id: cache-deliverable-restore
         uses: actions/cache/restore@v4
@@ -154,12 +147,6 @@ jobs:
           echo "version=$(head -n 1 target/scala-*/classes/version.txt)" >> $GITHUB_OUTPUT
           echo "version-major=$(grep -Eo '^[[:digit:]]+' target/scala-*/classes/version.txt)" >> $GITHUB_OUTPUT
           echo "version-less-patch=$(grep -Eo '^[[:digit:]]+\.[[:digit:]]+' target/scala-*/classes/version.txt)" >> $GITHUB_OUTPUT
-
-      #- name: Setup Scala
-      #  uses: coursier/setup-action@v1
-      #  with:
-      #    apps: sbt
-      #    jvm: temurin:1.21
 
       # QEMU for software emulation of multiple platforms
       - name: Setup QEMU

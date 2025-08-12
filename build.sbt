@@ -115,7 +115,7 @@ lazy val root = (project in file("."))
     // dockerEntrypoint       ++= Seq("-Djava.security.auth.login.config=src/main/resources/jaas.config")  // <- had trouble getting this to work
     Docker / mappings      ++= Seq((baseDirectory.value / "LICENSE.txt") -> "/1/licenses/LICENSE.txt"),
     dockerCommands          := Seq(Cmd("ARG", "RED_HAT_UBI_TYPE=minimal RHEL_VERSION=10 BASE_IMAGE=ubi${RHEL_VERSION}-${RED_HAT_UBI_TYPE} BASE_IMAGE_REGISTRY_UBI=registry.access.redhat.com BASE_IMAGE_TAG_UBI=latest BASE_IMAGE_FROM_UBI=" ++ dockerBaseImage.value ++ " BASE_IMAGE_REGISTRY_ALPINE=docker.io IMAGE_TAG_ALPINE=latest BASE_IMAGE_FROM_ALPINE=${BASE_IMAGE_REGISTRY_ALPINE}/alpine:${IMAGE_TAG_ALPINE}"),
-                                   Cmd("FROM", "${BASE_IMAGE_FROM_UBI} AS stage0"),
+                                   Cmd("FROM", "${BASE_IMAGE_FROM_ALPINE} AS stage0"),
                                    Cmd("LABEL", "snp-multi-stage='intermediate' snp-multi-stage-id='6466ecf3-c305-40bb-909a-47e60bded33d'"),
                                    Cmd("WORKDIR", "/etc/horizon/exchange"),
                                    Cmd("WORKDIR", "/licenses"),
