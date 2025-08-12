@@ -103,7 +103,7 @@ jobs:
       BASE_IMAGE_TAG_UBI:          ${{ vars.BASE_IMAGE_TAG_UBI || 'latest' }}
       BASE_IMAGE_REGISTERY_ALPINE: ${{ vars.BASE_IMAGE_REGISTERY_ALPINE || 'docker.io' }}
       BASE_IMAGE_REGISTERY_UBI:    ${{ vars.BASE_IMAGE_REGISTERY_UBI || 'registry.access.redhat.com' }}
-      BASE_IMAGE_FROM_ALPINE:      ${{ vars.BASE_IMAGE_FROM_ALPINE || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY_ALPINE || 'docker.io' ), (vars.BASE_IMAGE_NAME_ALPINE || 'alpine', (vars.BASE_IMAGE_TAG_ALPINE || 'latest')) }}
+      BASE_IMAGE_FROM_ALPINE:      ${{ vars.BASE_IMAGE_FROM_ALPINE || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY_ALPINE || 'docker.io' ), (vars.BASE_IMAGE_NAME_ALPINE || 'alpine'), (vars.BASE_IMAGE_TAG_ALPINE || 'latest')) }}
       BASE_IMAGE_FROM_UBI:         ${{ vars.BASE_IMAGE_FROM_UBI || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY_UBI || 'registry.access.redhat.com' ), (vars.BASE_IMAGE_NAME_UBI || format('ubi{0}-{1}', (vars.RED_HAT_VERSION || '10'), (vars.RED_HAT_UBI_TYPE || 'minimal'))), (vars.BASE_IMAGE_TAG_UBI || 'latest')) }}
       IMAGE_AUTHORS:               ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
       IMAGE_DESCRIPTION:           ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
