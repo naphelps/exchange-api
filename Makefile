@@ -239,7 +239,7 @@ target/docker/.run-docker: target/docker/.run-docker-db-postgres-http
       -e EXCHANGE_PEKKO_HTTP_PORT=$(EXCHANGE_CONTAINER_PORT_HTTP) \
       -e EXCHANGE_PEKKO_LOGLEVEL=$(EXCHANGE_PEKKO_LOGLEVEL) \
       -e EXCHANGE_ROOT_PW=$(EXCHANGE_ROOT_PW) \
-      ghcr.io/naphelps/exchange-ubi:testing
+      ghcr.io/naphelps/exchange-alpine:testing
 	@touch $@
 
 .PHONY: run-docker
