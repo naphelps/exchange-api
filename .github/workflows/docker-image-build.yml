@@ -48,13 +48,6 @@ on:
       - v2.110
       - v2.87
 
-env:
-  IMAGE_REPO: ${{ vars.DOCKERHUB_REPO }}
-  GITHUB_CONTAINER_REGISTRY: ghcr.io/${{ github.repository_owner }}
-  GH_BRANCH: ${{ github.ref_name }}
-  RUN_NUMBER: ${{ github.run_number }}
-  RUN_NUMBER_OFFSET: ${{ vars.RUN_NUMBER_OFFSET }}
-# ${{ format('{0}/exchange-api/.github/workflows/gh-workflow.yml@{1}' github.repository_owner, github.ref_name) }}
 jobs:
   cache-restore-check:
     outputs:
@@ -91,7 +84,7 @@ jobs:
           echo "build-targets=${{ env.BUILD_TARGETS }}" >> $GITHUB_OUTPUT
 
   # On rebuild, skip checking-out source and compilation, and restore from cache instead.
-  something2:
+  build-images:
     if: always()
     needs: [checkout-and-compile, set-matrix-build-targets]
     env:
@@ -138,8 +131,6 @@ jobs:
           key: checkout-and-compile-deliverable-${{ github.sha }}
           path: ~/work/exchange-api/exchange-api/target
 
-      # BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
-      # echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
       - continue-on-error: true
         id: exchange-version
         name: Exchange Version
@@ -237,7 +228,10 @@ jobs:
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
           attests: type=sbom,generator=image
           build-args: |
+            BASE_IMAGE_DIGEST_ALPINE=${{ steps.base-img-digest.outputs.digest-alpine }}
             BASE_IMAGE_DIGEST_UBI=${{ steps.base-img-digest.outputs.digest-ubi }}
+            BASE_IMAGE_FROM_ALPINE=${{ env.BASE_IMAGE_FROM_ALPINE }}
+            BASE_IMAGE_FROM_UBI=${{ env.BASE_IMAGE_FROM_UBI }}
             IMAGE_CREATION_TIMESTAMP=${{ steps.image-creation.outputs.creation }}
             IMAGE_REVISION=${{ github.sha }}
             IMAGE_VERSION=${{ steps.exchange-version.outputs.version }}
@@ -245,10 +239,6 @@ jobs:
           cache-to: type=gha,mode=max
           context: target/docker/stage
           file: target/docker/stage/Dockerfile
-          #org.opencontainers.image.authors=
-          #org.opencontainers.image.ref.name=
-          #org.opencontainers.image.url=
-          # labels: ${{ steps.docker-metadata.outputs.labels }}
           platforms: ${{ matrix.build-targets == 'exchange-ubi' && env.IMAGE_PLATFORMS || format('{0},linux/riscv64', env.IMAGE_PLATFORMS) }}
           provenance: mode=max
           push: true
