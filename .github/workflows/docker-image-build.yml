@@ -42,6 +42,7 @@ on:
   push:
     branches:
       - master
+      - v2.144
       - v2.124
       - v2.122
       - v2.110
@@ -77,6 +78,7 @@ jobs:
     if: ${{ needs.cache-restore-check.outputs.cache-hit != 'true' }}
     needs: cache-restore-check
 
+  # Matrices do not allow templating. As a workaround, we encode our dynamic choices in JSON and then decode it later as a static value.
   set-matrix-build-targets:
     env:
       BUILD_TARGETS: ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || '[\"exchange-alpine\", \"exchange-ubi\"]') || inputs.build-targets }}
@@ -108,35 +110,36 @@ jobs:
       IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
       IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
     runs-on: ubuntu-latest
-    # ${{ github.event_name == 'push' && (vars.BUILD_TARGETS || ('[exchange-alpine,exchange-ubi]')) || inputs.build-targets }}
     strategy:
       matrix:
+        # Decode JSON into a static value.
         build-targets: ${{ fromJson(needs.set-matrix-build-targets.outputs.build-targets) }}
     steps:
       - id: cache-workflow-restore
         name: Restore Checkout & Compile Workflows
         uses: actions/cache/restore@v4
         with:
+          fail-on-cache-miss: true
+          key: checkout-and-compile-workflow-${{ github.sha }}
           path: |
             ~/work/exchange-api/exchange-api/.git
             ~/work/exchange-api/exchange-api/.github
             ~/work/exchange-api/exchange-api/src/main/resources/version.txt
-          key: checkout-and-compile-workflow-${{ github.sha }}
 
-      - id: checkout
-        if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
-        name: Checkout Github Repository
-        uses: actions/checkout@v3
-        with:
-          clean: false
+      #- id: checkout
+      #  if: steps.cache-workflow-restore.outputs.cache-hit != 'true'
+      #  name: Checkout Github Repository
+      #  uses: actions/checkout@v3
+      #  with:
+      #    clean: false
 
       - name: Restore Checkout & Compile Deliverables
         id: cache-deliverable-restore
         uses: actions/cache/restore@v4
         with:
-          path: ~/work/exchange-api/exchange-api/target
-          key: checkout-and-compile-deliverable-${{ github.sha }}
           fail-on-cache-miss: true
+          key: checkout-and-compile-deliverable-${{ github.sha }}
+          path: ~/work/exchange-api/exchange-api/target
 
       # BUILD_NUMBER=$(($RUN_NUMBER + $RUN_NUMBER_OFFSET))
       # echo "GIT_SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
@@ -197,13 +200,13 @@ jobs:
       - continue-on-error: true
         id: base-img-digest
         name: Base Image Digest
-        run: echo "digest=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
+        run: echo "digest-ubi=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
 
       - env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
           DEFAULT_ANNOTATIONS: |
             org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
-            org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest }}
+            org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest-ubi }}
             org.opencontainers.image.base.name=${{ env.BASE_IMAGE_FROM }}
             org.opencontainers.image.created=${{ steps.image-creation.outputs.creation-rfc3339 }}
             org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
@@ -226,7 +229,7 @@ jobs:
           DOMAIN_DOCKERHUB: docker.io
           DOMAIN_GHCR: ghcr.io
           DOMAIN_QUAY: quay.io
-          IMAGE_NAME: ${{ vars.IMAGE_NAME || 'exchange-ubi' }}
+          IMAGE_NAME: ${{ vars.IMAGE_NAME || matrix.build-targets }}
           REGISTRY_DOCKERHUB_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-dockerhub-enabled }}
           REGISTRY_GHCR_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-ghcr-enabled }}
           REGISTRY_QUAY_ENABLE: ${{ github.event_name == 'push' && 'true' || inputs.registry-quay-enabled }}
@@ -240,7 +243,7 @@ jobs:
           annotations: ${{ steps.docker-metadata.outputs.annotations }}
           attests: type=sbom,generator=image
           build-args: |
-            BASE_IMAGE_DIGEST=${{ steps.base-img-digest.outputs.digest }}
+            BASE_IMAGE_DIGEST_UBI=${{ steps.base-img-digest.outputs.digest-ubi }}
             IMAGE_CREATION_TIMESTAMP=${{ steps.image-creation.outputs.creation }}
             IMAGE_REVISION=${{ github.sha }}
             IMAGE_VERSION=${{ steps.exchange-version.outputs.version }}
@@ -257,19 +260,19 @@ jobs:
           push: true
           sbom: true
           tags: |
-            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
-            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
-            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
-            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
-            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, 'latest', '') || '' }}
-            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, env.IMAGE_NAME, 'testing', '') || '' }}
+            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_DOCKERHUB_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, matrix.build-targets, 'latest', '') || '' }}
+            ${{ (env.REGISTRY_DOCKERHUB_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_DOCKERHUB, github.repository_owner, matrix.build-targets, 'testing', '') || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_GHCR_ENABLE == 'true' && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, matrix.build-targets, 'latest', '') || '' }}
+            ${{ (env.REGISTRY_GHCR_ENABLE == 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_GHCR, github.repository_owner, matrix.build-targets, 'testing', '') || '' }}
+            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version-major, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version-less-patch, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ env.REGISTRY_QUAY_ENABLE != 'true' && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, matrix.build-targets, steps.exchange-version.outputs.version, env.TAG_TEST_SUFFIX) || '' }}
+            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_LATEST_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, matrix.build-targets, 'latest', '') || '' }}
+            ${{ (env.REGISTRY_QUAY_ENABLE != 'true' && env.TAG_TESTING_ENABLE == 'true') && format(env.TAG_SYNTAX, env.DOMAIN_QUAY, github.repository_owner, matrix.build-targets, 'testing', '') || '' }}
           target: ${{ matrix.build-targets }}
