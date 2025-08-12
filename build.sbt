@@ -127,11 +127,6 @@ lazy val root = (project in file("."))
                                    Cmd("RUN", "chmod -R u=r,g=r /etc/horizon /licenses && chmod -R u=rX,g=rX /4/opt/docker /2/opt/docker && chmod u+x,g+x /4/opt/docker/bin/" ++ name.value),
                                    Cmd(""), // Line break
                                    Cmd("FROM", "${BASE_IMAGE_FROM_ALPINE} AS exchange-alpine"),
-                                   // Cmd("LABEL", "description=" ++ description.value),
-                                   // Cmd("LABEL", "io.k8s.description=''"),
-                                   // Cmd("LABEL", "io.k8s.display-name=''"),
-                                   // Cmd("LABEL", "io.openshift.tags=''"),
-                                   // Cmd("LABEL", "name=" ++ name.value ++ " release=" ++ release.value ++ " summary=" ++ summary.value ++ " vendor=" ++ vendor.value ++ " version=" ++ version.value),
                                    Cmd("ARG", "BASE_IMAGE_DIGEST_ALPINE BASE_IMAGE_FROM_ALPINE IMAGE_AUTHORS=\"Open Horizon <open-horizon@lists.lfedge.org>\" IMAGE_CREATION_TIMESTAMP IMAGE_DESCRIPTION=\"Open Horizon's Exchange Server and REST API\" IMAGE_DOCUMENTATION='https://open-horizon.github.io/' IMAGE_REVISION IMAGE_SOURCE='https://github.com/open-horizon/exchange-api' IMAGE_TITLE=Exchange IMAGE_VENDOR='Open Horizon' IMAGE_VERSION"),
                                    Cmd("LABEL", "rg.opencontainers.image.authors=${IMAGE_AUTHORS} org.opencontainers.image.base.digest=${BASE_IMAGE_DIGEST_ALPINE} org.opencontainers.image.base.name=${BASE_IMAGE_FROM_ALPINE} org.opencontainers.image.created=${IMAGE_CREATION_TIMESTAMP} org.opencontainers.image.description=${IMAGE_DESCRIPTION} org.opencontainers.image.documentation=${IMAGE_DOCUMENTATION} org.opencontainers.image.licenses=Apache-2.0 org.opencontainers.image.revision=${IMAGE_REVISION} org.opencontainers.image.source=${IMAGE_SOURCE} org.opencontainers.image.title=${IMAGE_TITLE} org.opencontainers.image.vendor=${IMAGE_VENDOR} org.opencontainers.image.version=${IMAGE_VERSION}"),
                                    Cmd("RUN", "mkdir -p /run/user/" ++ (Docker / daemonUserUid).value.get ++ " && apk --force-refresh -q -U upgrade 1>/dev/null 2>&1 && apk add -q bash openjdk21-jre-headless openssl shadow 1>/dev/null 2>&1 && apk cache clean 1>/dev/null 2>&1"),
@@ -152,11 +147,6 @@ lazy val root = (project in file("."))
                                    Cmd("CMD", "[]"),
                                    Cmd(""), // Line break
                                    Cmd("FROM", "${BASE_IMAGE_FROM_UBI} AS exchange-ubi"),
-                                   // Cmd("LABEL", "description=" ++ description.value),
-                                   // Cmd("LABEL", "io.k8s.description=''"),
-                                   // Cmd("LABEL", "io.k8s.display-name=''"),
-                                   // Cmd("LABEL", "io.openshift.tags=''"),
-                                   // Cmd("LABEL", "name=" ++ name.value ++ " release=" ++ release.value ++ " summary=" ++ summary.value ++ " vendor=" ++ vendor.value ++ " version=" ++ version.value),
                                    Cmd("ARG", "BASE_IMAGE_DIGEST_UBI BASE_IMAGE_FROM_UBI IMAGE_AUTHORS=\"Open Horizon <open-horizon@lists.lfedge.org>\" IMAGE_CREATION_TIMESTAMP IMAGE_DESCRIPTION=\"Open Horizon's Exchange Server and REST API\" IMAGE_DOCUMENTATION='https://open-horizon.github.io/' IMAGE_REVISION IMAGE_SOURCE='https://github.com/open-horizon/exchange-api' IMAGE_TITLE=Exchange IMAGE_VENDOR='Open Horizon' IMAGE_VERSION"),
                                    Cmd("LABEL", "rg.opencontainers.image.authors=${IMAGE_AUTHORS} org.opencontainers.image.base.digest=${BASE_IMAGE_DIGEST_UBI} org.opencontainers.image.base.name=${BASE_IMAGE_FROM_UBI} org.opencontainers.image.created=${IMAGE_CREATION_TIMESTAMP} org.opencontainers.image.description=${IMAGE_DESCRIPTION} org.opencontainers.image.documentation=${IMAGE_DOCUMENTATION} org.opencontainers.image.licenses=Apache-2.0 org.opencontainers.image.revision=${IMAGE_REVISION} org.opencontainers.image.source=${IMAGE_SOURCE} org.opencontainers.image.title=${IMAGE_TITLE} org.opencontainers.image.vendor=${IMAGE_VENDOR} org.opencontainers.image.version=${IMAGE_VERSION}"),
                                    Cmd("RUN", "mkdir -p /run/user/" ++ (Docker / daemonUserUid).value.get ++ " && microdnf update --disableplugin=subscription-manager --nodocs --refresh --setopt=install_weak_deps=0 -y 1>/dev/null 2>&1 && microdnf install --disableplugin=subscription-manager --nodocs --setopt=install_weak_deps=0 -y java-21-openjdk-headless openssl shadow-utils 1>/dev/null 2>&1 && microdnf clean all 1>/dev/null 2>&1"),

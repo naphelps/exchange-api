@@ -95,20 +95,24 @@ jobs:
     if: always()
     needs: [checkout-and-compile, set-matrix-build-targets]
     env:
-      RED_HAT_VERSION:      ${{ vars.RED_HAT_VERSION || '10' }}
-      RED_HAT_UBI_TYPE:     ${{ vars.RED_HAT_UBI_TYPE  || 'minimal' }}
-      BASE_IMAGE_NAME:      ${{ vars.BASE_IMAGE_NAME || format('ubi{0}-{1}', (vars.RED_HAT_VERSION || '10'), (vars.RED_HAT_UBI_TYPE || 'minimal')) }}
-      BASE_IMAGE_TAG:       ${{ vars.BASE_IMAGE_TAG || 'latest' }}
-      BASE_IMAGE_REGISTERY: ${{ vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' }}
-      BASE_IMAGE_FROM:      ${{ vars.BASE_IMAGE_FROM || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY || 'registry.access.redhat.com' ), (vars.BASE_IMAGE_NAME || format('ubi{0}-{1}', (vars.RED_HAT_VERSION || '10'), (vars.RED_HAT_UBI_TYPE || 'minimal'))), (vars.BASE_IMAGE_TAG || 'latest')) }}
-      IMAGE_AUTHORS:        ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
-      IMAGE_DESCRIPTION:    ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
-      IMAGE_DOCUMENTATION:  ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
-      IMAGE_LICENSES:       ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
-      IMAGE_PLATFORMS:      ${{ github.event_name == 'push' && (vars.IMAGE_PLATFORMS || 'linux/amd64,linux/arm64,linux/ppc64le,linux/s390x') || inputs.image-platforms }}
-      IMAGE_SOURCE:         ${{ vars.IMAGE_SOURCE || github.repositoryUrl }}
-      IMAGE_TITLE:          ${{ vars.IMAGE_TITLE || 'Exchange' }}
-      IMAGE_VENDOR:         ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
+      RED_HAT_VERSION:             ${{ vars.RED_HAT_VERSION || '10' }}
+      RED_HAT_UBI_TYPE:            ${{ vars.RED_HAT_UBI_TYPE  || 'minimal' }}
+      BASE_IMAGE_NAME_ALPINE:      ${{ vars.BASE_IMAGE_NAME_ALPINE || 'alpine' }}
+      BASE_IMAGE_NAME_UBI:         ${{ vars.BASE_IMAGE_NAME_UBI || format('ubi{0}-{1}', (vars.RED_HAT_VERSION || '10'), (vars.RED_HAT_UBI_TYPE || 'minimal')) }}
+      BASE_IMAGE_TAG_ALPINE:       ${{ vars.BASE_IMAGE_TAG_ALPINE || 'latest' }}
+      BASE_IMAGE_TAG_UBI:          ${{ vars.BASE_IMAGE_TAG_UBI || 'latest' }}
+      BASE_IMAGE_REGISTERY_ALPINE: ${{ vars.BASE_IMAGE_REGISTERY_ALPINE || 'docker.io' }}
+      BASE_IMAGE_REGISTERY_UBI:    ${{ vars.BASE_IMAGE_REGISTERY_UBI || 'registry.access.redhat.com' }}
+      BASE_IMAGE_FROM_ALPINE:      ${{ vars.BASE_IMAGE_FROM_ALPINE || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY_ALPINE || 'docker.io' ), (vars.BASE_IMAGE_NAME_ALPINE || 'alpine', (vars.BASE_IMAGE_TAG_ALPINE || 'latest')) }}
+      BASE_IMAGE_FROM_UBI:         ${{ vars.BASE_IMAGE_FROM_UBI || format('{0}/{1}:{2}', (vars.BASE_IMAGE_REGISTERY_UBI || 'registry.access.redhat.com' ), (vars.BASE_IMAGE_NAME_UBI || format('ubi{0}-{1}', (vars.RED_HAT_VERSION || '10'), (vars.RED_HAT_UBI_TYPE || 'minimal'))), (vars.BASE_IMAGE_TAG_UBI || 'latest')) }}
+      IMAGE_AUTHORS:               ${{ vars.IMAGE_AUTHORS || 'Open Horizon <open-horizon@lists.lfedge.org>' }}
+      IMAGE_DESCRIPTION:           ${{ vars.IMAGE_DESCRIPTION || 'Open Horizon''s Exchange Server and REST API' }}
+      IMAGE_DOCUMENTATION:         ${{ vars.IMAGE_DOCUMENTATION || 'https://open-horizon.github.io/' }}
+      IMAGE_LICENSES:              ${{ vars.IMAGE_LICENSES || 'Apache-2.0' }}
+      IMAGE_PLATFORMS:             ${{ github.event_name == 'push' && (vars.IMAGE_PLATFORMS || 'linux/amd64,linux/arm64,linux/ppc64le,linux/s390x') || inputs.image-platforms }}
+      IMAGE_SOURCE:                ${{ vars.IMAGE_SOURCE || github.repositoryUrl }}
+      IMAGE_TITLE:                 ${{ vars.IMAGE_TITLE || 'Exchange' }}
+      IMAGE_VENDOR:                ${{ vars.IMAGE_VENDOR || 'Open Horizon' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -177,7 +181,7 @@ jobs:
       - name: Setup Docker Buildx
         with:
           install: true
-          platforms: ${{ env.IMAGE_PLATFORMS }}
+          platforms: ${{ matrix.build-targets == 'exchange-ubi' && env.IMAGE_PLATFORMS || format('{0},linux/riscv64', env.IMAGE_PLATFORMS) }}
         uses: docker/setup-buildx-action@v3
 
       # Authenticate GHCR to allow pushing to our alternate image registry
@@ -200,14 +204,16 @@ jobs:
       - continue-on-error: true
         id: base-img-digest
         name: Base Image Digest
-        run: echo "digest-ubi=$(docker buildx imagetools inspect registry.access.redhat.com/ubi10-minimal:latest --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
+        run: |
+          echo "digest-alpine=$(docker buildx imagetools inspect ${BASE_IMAGE_FROM_ALPINE} --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
+          echo "digest-ubi=$(docker buildx imagetools inspect ${BASE_IMAGE_FROM_UBI} --format '{{ json . }}' | jq -r .manifest.digest)" >> $GITHUB_OUTPUT
 
       - env:
           DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
           DEFAULT_ANNOTATIONS: |
             org.opencontainers.image.authors=${{ env.IMAGE_AUTHORS }}
-            org.opencontainers.image.base.digest=${{ steps.base-img-digest.outputs.digest-ubi }}
-            org.opencontainers.image.base.name=${{ env.BASE_IMAGE_FROM }}
+            org.opencontainers.image.base.digest=${{ matrix.build-targets == 'exchange-ubi' && steps.base-img-digest.outputs.digest-ubi || steps.base-img-digest.outputs.digest-alpine }}
+            org.opencontainers.image.base.name=${{ matrix.build-targets == 'exchange-ubi' && env.BASE_IMAGE_FROM_UBI || env.BASE_IMAGE_FROM_ALPINE }}
             org.opencontainers.image.created=${{ steps.image-creation.outputs.creation-rfc3339 }}
             org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
             org.opencontainers.image.documentation=${{ env.IMAGE_DOCUMENTATION }}
@@ -256,7 +262,7 @@ jobs:
           #org.opencontainers.image.ref.name=
           #org.opencontainers.image.url=
           # labels: ${{ steps.docker-metadata.outputs.labels }}
-          platforms: ${{ env.IMAGE_PLATFORMS }}
+          platforms: ${{ matrix.build-targets == 'exchange-ubi' && env.IMAGE_PLATFORMS || format('{0},linux/riscv64', env.IMAGE_PLATFORMS) }}
           provenance: mode=max
           push: true
           sbom: true
