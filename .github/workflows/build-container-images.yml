@@ -67,7 +67,7 @@ jobs:
 
   # On rebuild skip this job.
   checkout-and-compile:
-    uses: 'naphelps/exchange-api/.github/workflows/gh-workflow.yml@test'
+    uses: './.github/workflows/checkout-and-compile.yml'
     if: ${{ needs.cache-restore-check.outputs.cache-hit != 'true' }}
     needs: cache-restore-check
 
