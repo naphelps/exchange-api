@@ -347,25 +347,37 @@ object ExchangeApiApp extends App
       for {
         nodeIdentities <-
           NodesTQ.filter(nodes => nodes.orgid === organization &&
-                                            nodes.id === (organization ++ "/" ++ username))
+                                  nodes.id === (organization ++ "/" ++ username))
             .map(nodes => ((false, Rep.None[UUID], false, nodes.owner.?, 0), nodes.token))
             .take(1)
             .result
             
         agbotIdentities <-
-          AgbotsTQ.filter(agbots => agbots.orgid === organization && agbots.id === (organization ++ "/" ++ username))
+          AgbotsTQ.filter(agbots => agbots.orgid === organization &&
+                                    agbots.id === (organization ++ "/" ++ username))
              .map(agbots => ((false, Rep.None[UUID], false, agbots.owner.?, 1), agbots.token))
             .take(1)
             .result
         
         useridentities <-
-          UsersTQ.filter(users => users.organization === organization && users.username === username)
+          UsersTQ.filter(users => users.organization === organization &&
+                                  users.username === username)
              .map(users => ((users.isHubAdmin, users.user.?, users.isOrgAdmin, Rep.None[UUID], 2), users.password.getOrElse("")))
             .take(1)
             .result
       } yield ((nodeIdentities ++ agbotIdentities ++ useridentities)).minBy(_._1._5)
     
     db.run(getIdentityQuery.transactionally)
+  }
+  
+  def getAllUserIdentitiesAndPasswords: Future[Seq[(Identity2, String)]] = {
+    val getIdentityQuery =
+      for {
+        useridentities <-
+          UsersTQ.map(users => ((users.organization, (users.isHubAdmin, users.user.?, users.isOrgAdmin, Rep.None[UUID], 2), users.username), users.password.getOrElse("")))
+      } yield (useridentities._1.mapTo[Identity2], useridentities._2)
+    
+    db.run(getIdentityQuery.result.transactionally)
   }
   
   val reg: Regex = """^(\S*?)/(\S*)$""".r
@@ -385,7 +397,7 @@ object ExchangeApiApp extends App
           val (organization: String,
                username: String) = {
             resource match {
-              case reg(organization: String, username) =>
+              case reg(organization: String, username: String) =>
                 (organization, username)
               case _ =>
                 ("", "")
@@ -1330,6 +1342,33 @@ object ExchangeApiApp extends App
   }
   val msgsCleanupActor: ActorRef = system.actorOf(Props(new MsgsCleanupActor()))
   val secondsToWait: Int = system.settings.config.getInt("api.service.shutdownWaitForRequestsToComplete") // ExchConfig.getpekkoConfig() also makes the pekko unbind phase this long
+  
+  class PreloadAuthenticationCacheActor(timerInterval: Int = system.settings.config.getInt("api.defaults.msgs.expired_msgs_removal_interval")) extends Actor with Timers {
+    override def preStart(): Unit = {
+      timers.startSingleTimer(key = "preloadAuthenticationCache", msg = CleanupExpiredMessages, timeout = 0.seconds)
+      timers.startTimerAtFixedRate(interval = timerInterval.minute, key = "preloadAuthenticationCache", msg = CleanupExpiredMessages)
+      Future { logger.info(s"Scheduling preloading the authentication cache every ${timerInterval.minute} minutes") }
+      super.preStart()
+    }
+    
+    def x = {
+      
+      def y (identityMetadata: ((Boolean, Option[UUID], Boolean, Option[UUID], Int), String)) = {
+        (new Identity2(organization, identityMetadata._1, username), identityMetadata._2, None)
+      }
+      
+      val something =
+        getAllUserIdentitiesAndPasswords.foreach(result =>
+                    Future {
+                      cacheResourceIdentity.doPut(key = result._1.resource, value = (result._1, result._2, None), ttl = Option(Configuration.getConfig.getInt("api.cache.idsTtlSeconds").seconds))
+                    })
+    }
+    
+    override def receive: Receive = {
+      case CleanupExpiredMessages => removeExpiredMsgs()
+      case _ => logger.debug("invalid case sent to MsgsCleanupActor")
+    }
+  }
   
   var serverBindingHttp: Option[Http.ServerBinding] = None
   var serverBindingHttps: Option[Http.ServerBinding] = None

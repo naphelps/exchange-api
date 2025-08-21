@@ -102,7 +102,7 @@ jobs:
       - name: Verify Built Container Images
         run: docker images
 
-      - name: E2E Development Test NOLOOP=1
+      - name: E2E Development Test
         id: test-runner
         run: cd ${GOPATH}/src/github.com/open-horizon/anax && make -C test test-no-clean TEST_VARS=${{matrix.tests}}
 
