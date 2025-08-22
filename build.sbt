@@ -33,15 +33,15 @@ Global / excludeLintKeys += dockerEnvVars
 
 lazy val root = (project in file("."))
   .settings(
-    description                   := "'Containerized exchange-api'",
-    name                          := "amd64_exchange-api",
+    description                   := "'Containerized Exchange server'",
+    name                          := "exchange",
     organization                  := "org.openhorizon",
     pekkoHttpVersion              := "[1.2.0]",
     pekkoVersion                  := "[1.1.3]",
     release                       := sys.env.getOrElse("GIT_SHORT_SHA", versionFunc()),
     resolvers                     += Classpaths.typesafeReleases,
     scalaVersion                  := "2.13.16",
-    summary                       := "'Open Horizon exchange-api image'",
+    summary                       := "'Open Horizon Exchange image'",
     vendor                        := "'Open Horizon'",
     version                       := sys.env.getOrElse("IMAGE_VERSION", versionFunc()),
     // ThisBuild / scapegoatVersion := "1.4.4",
@@ -104,7 +104,7 @@ lazy val root = (project in file("."))
     
     // These settings are for the Docker subplugin within sbt-native-packager. See: https://sbt-native-packager.readthedocs.io/en/stable/formats/docker.html
     Docker / version        := sys.env.getOrElse("IMAGE_VERSION", versionFunc()), // overwrite this setting to build a test version of the exchange with a custom tag in docker, defaults to exchange version
-    Docker / packageName    := sys.env.getOrElse("CONTAINER_REGISTRY", "openhorizon") ++ "/" ++ name.value,
+    Docker / packageName    := sys.env.getOrElse("CONTAINER_REGISTRY", "openhorizon/exchange-ubi"),
     Docker / daemonUser     := "exchangeuser",
     Docker / daemonUserUid  := Some("1001"),
     Docker / daemonGroup    := "exchangegroup",

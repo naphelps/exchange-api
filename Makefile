@@ -19,7 +19,7 @@ endif
 DOCKER_TAG ?= $(VERSION)$(BRANCH)
 DOCKER_LATEST ?= latest$(BRANCH)
 DOCKER_OPTS ?= --no-cache
-IMAGE_STRING = $(DOCKER_REGISTRY)/$(ARCH)_exchange-api
+IMAGE_STRING = $(DOCKER_REGISTRY)/exchange-ubi
 EXCHANGE_API_DIR ?= /src/github.com/open-horizon/exchange-api
 # This version corresponds to the Version variable in project/build.scala
 # EXCHANGE_API_WAR_VERSION ?= 0.1.0
